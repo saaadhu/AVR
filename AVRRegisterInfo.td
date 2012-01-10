@@ -42,6 +42,22 @@ def R12 : AVRReg<12, "r12">;
 def R13 : AVRReg<13, "r13">;
 def R14 : AVRReg<14, "r14">;
 def R15 : AVRReg<15, "r15">;
+def R16 : AVRReg<16, "r16">;
+def R17 : AVRReg<17, "r17">;
+def R18 : AVRReg<18, "r18">;
+def R19 : AVRReg<19, "r19">;
+def R20 : AVRReg<20, "r20">;
+def R21 : AVRReg<21, "r21">;
+def R22 : AVRReg<22, "r22">;
+def R23 : AVRReg<23, "r23">;
+def R24 : AVRReg<24, "r24">;
+def R25 : AVRReg<25, "r25">;
+def R26 : AVRReg<26, "r26">;
+def R27 : AVRReg<27, "r27">;
+def R28 : AVRReg<28, "r28">;
+def R29 : AVRReg<29, "r29">;
+def R30 : AVRReg<30, "r30">;
+def R31 : AVRReg<31, "r31">;
 
 // def subreg_8bit : SubRegIndex { let Namespace = "MSP430"; }
 
