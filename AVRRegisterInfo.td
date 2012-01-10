@@ -11,8 +11,8 @@
 //  Declarations that describe the AVR register file
 //===----------------------------------------------------------------------===//
 
-class AVRReg<bits<4> num, string n> : Register<n> {
-  field bits<4> Num = num;
+class AVRReg<bits<5> num, string n> : Register<n> {
+  field bits<5> Num = num;
   let Namespace = "AVR";
 }
 

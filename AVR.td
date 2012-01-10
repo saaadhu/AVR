@@ -33,7 +33,7 @@ include "AVRRegisterInfo.td"
 // Calling Convention Description
 //===----------------------------------------------------------------------===//
 
-//include "AVRCallingConv.td"
+include "AVRCallingConv.td"
 
 //===----------------------------------------------------------------------===//
 // Instruction Descriptions
