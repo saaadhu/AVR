@@ -11,6 +11,7 @@
 //
 //===----------------------------------------------------------------------===//
 
+#include "AVR.h"
 #include "AVRTargetMachine.h"
 #include "llvm/PassManager.h"
 #include "llvm/CodeGen/Passes.h"
@@ -20,7 +21,7 @@ using namespace llvm;
 
 extern "C" void LLVMInitializeAVRTarget() {
   // Register the target.
-  // RegisterTargetMachine<AVRTargetMachine> X(TheAVRTarget);
+  RegisterTargetMachine<AVRTargetMachine> X(TheAVRTarget);
 }
 
 AVRTargetMachine::AVRTargetMachine(const Target &T,

@@ -18,16 +18,18 @@
 #include "MCTargetDesc/AVRMCTargetDesc.h"
 #include "llvm/Target/TargetMachine.h"
 
+/*
 namespace llvm {
-  class AVRTargetMachine;
+  class MSP430TargetMachine;
   class FunctionPass;
   class formatted_raw_ostream;
 
-  //FunctionPass *createMSP430ISelDag(MSP430TargetMachine &TM,
-  //                                  CodeGenOpt::Level OptLevel);
+  FunctionPass *createMSP430ISelDag(MSP430TargetMachine &TM,
+                                    CodeGenOpt::Level OptLevel);
 
-  //FunctionPass *createMSP430BranchSelectionPass();
+  FunctionPass *createMSP430BranchSelectionPass();
 
 } // end namespace llvm;
+*/
 
 #endif
