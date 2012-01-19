@@ -15,6 +15,6 @@ using namespace llvm;
 Target llvm::TheAVRTarget;
 
 extern "C" void LLVMInitializeAVRTargetInfo() { 
-  RegisterTarget<Triple::msp430> 
+  RegisterTarget<Triple::avr> 
     X(TheAVRTarget, "avr", "AVR [experimental]");
 }
