@@ -1,0 +1,126 @@
+diff --git a/configure b/configure
+index 7c86dbf..d4bb66b 100755
+--- a/configure
++++ b/configure
+@@ -1419,7 +1419,7 @@ Optional Features:
+   --enable-targets        Build specific host targets: all or
+                           target1,target2,... Valid targets are: host, x86,
+                           x86_64, sparc, powerpc, arm, mips, spu, hexagon,
+-                          xcore, msp430, ptx, cbe, and cpp (default=all)
++                          xcore, msp430, avr, ptx, cbe, and cpp (default=all)
+   --enable-cbe-printf-a   Enable C Backend output with hex floating point via
+                           %a (default is YES)
+   --enable-bindings       Build specific language bindings:
+@@ -3888,6 +3888,7 @@ else
+   mips-*)                 llvm_cv_target_arch="Mips" ;;
+   xcore-*)                llvm_cv_target_arch="XCore" ;;
+   msp430-*)               llvm_cv_target_arch="MSP430" ;;
++  avr-*)		  llvm_cv_target_arch="AVR" ;;
+   hexagon-*)              llvm_cv_target_arch="Hexagon" ;;
+   mblaze-*)               llvm_cv_target_arch="MBlaze" ;;
+   ptx-*)                  llvm_cv_target_arch="PTX" ;;
+@@ -5109,6 +5110,8 @@ else
+  ;;
+     MSP430)      TARGET_HAS_JIT=0
+  ;;
++   AVR)		 TARGET_HAS_JIT=0
++ ;;
+     Hexagon)     TARGET_HAS_JIT=0
+  ;;
+     MBlaze)      TARGET_HAS_JIT=0
+@@ -5299,7 +5302,7 @@ if test "$enableval" = host-only ; then
+   enableval=host
+ fi
+ case "$enableval" in
+-  all) TARGETS_TO_BUILD="X86 Sparc PowerPC ARM Mips CellSPU XCore MSP430 CBackend CppBackend MBlaze PTX Hexagon" ;;
++  all) TARGETS_TO_BUILD="X86 Sparc PowerPC ARM Mips CellSPU XCore MSP430 AVR CBackend CppBackend MBlaze PTX Hexagon" ;;
+   *)for a_target in `echo $enableval|sed -e 's/,/ /g' ` ; do
+       case "$a_target" in
+         x86)      TARGETS_TO_BUILD="X86 $TARGETS_TO_BUILD" ;;
+@@ -5311,6 +5314,7 @@ case "$enableval" in
+         spu)      TARGETS_TO_BUILD="CellSPU $TARGETS_TO_BUILD" ;;
+         xcore)    TARGETS_TO_BUILD="XCore $TARGETS_TO_BUILD" ;;
+         msp430)   TARGETS_TO_BUILD="MSP430 $TARGETS_TO_BUILD" ;;
++	avr)	  TARGETS_TO_BUILD="AVR $TARGETS_TO_BUILD" ;;
+         cbe)      TARGETS_TO_BUILD="CBackend $TARGETS_TO_BUILD" ;;
+         cpp)      TARGETS_TO_BUILD="CppBackend $TARGETS_TO_BUILD" ;;
+         hexagon)  TARGETS_TO_BUILD="Hexagon $TARGETS_TO_BUILD" ;;
+@@ -5327,6 +5331,7 @@ case "$enableval" in
+             CellSPU|SPU) TARGETS_TO_BUILD="CellSPU $TARGETS_TO_BUILD" ;;
+             XCore)       TARGETS_TO_BUILD="XCore $TARGETS_TO_BUILD" ;;
+             MSP430)      TARGETS_TO_BUILD="MSP430 $TARGETS_TO_BUILD" ;;
++	    AVR)	 TARGETS_TO_BUILD="AVR $TARGETS_TO_BUILD" ;;
+             Hexagon)     TARGETS_TO_BUILD="Hexagon $TARGETS_TO_BUILD" ;;
+             PTX)         TARGETS_TO_BUILD="PTX $TARGETS_TO_BUILD" ;;
+             *)       { { echo "$as_me:$LINENO: error: Can not set target to build" >&5
+diff --git a/include/llvm/ADT/Triple.h b/include/llvm/ADT/Triple.h
+index 4739fb5..ed0e11c 100644
+--- a/include/llvm/ADT/Triple.h
++++ b/include/llvm/ADT/Triple.h
+@@ -51,6 +51,7 @@ public:
+     mips64,  // MIPS64: mips64
+     mips64el,// MIPS64EL: mips64el
+     msp430,  // MSP430: msp430
++    avr,     // AVR : avr
+     ppc,     // PPC: powerpc
+     ppc64,   // PPC64: powerpc64, ppu
+     sparc,   // Sparc: sparc
+diff --git a/lib/Target/LLVMBuild.txt b/lib/Target/LLVMBuild.txt
+index 5a42ca5..fa142a3 100644
+--- a/lib/Target/LLVMBuild.txt
++++ b/lib/Target/LLVMBuild.txt
+@@ -16,7 +16,7 @@
+ ;===------------------------------------------------------------------------===;
+ 
+ [common]
+-subdirectories = ARM CBackend CellSPU CppBackend Hexagon MBlaze MSP430 Mips PTX PowerPC Sparc X86 XCore
++subdirectories = ARM CBackend CellSPU CppBackend Hexagon MBlaze MSP430 AVR Mips PTX PowerPC Sparc X86 XCore
+ 
+ ; This is a special group whose required libraries are extended (by llvm-build)
+ ; with the best execution engine (the native JIT, if available, or the
+diff --git a/projects/sample/configure b/projects/sample/configure
+index 860faa2..38f6bf0 100755
+--- a/projects/sample/configure
++++ b/projects/sample/configure
+@@ -3843,6 +3843,7 @@ else
+   mips-*)                 llvm_cv_target_arch="Mips" ;;
+   xcore-*)                llvm_cv_target_arch="XCore" ;;
+   msp430-*)               llvm_cv_target_arch="MSP430" ;;
++  avr-*)		  llvm_cv_target_arch="AVR" ;;
+   hexagon-*)              llvm_cv_target_arch="Hexagon" ;;
+   mblaze-*)               llvm_cv_target_arch="MBlaze" ;;
+   ptx-*)                  llvm_cv_target_arch="PTX" ;;
+@@ -5045,6 +5046,8 @@ else
+  ;;
+     MSP430)      TARGET_HAS_JIT=0
+  ;;
++    AVR)         TARGET_HAS_JIT=0
++;;
+     Hexagon)     TARGET_HAS_JIT=0
+  ;;
+     MBlaze)      TARGET_HAS_JIT=0
+@@ -5235,7 +5238,7 @@ if test "$enableval" = host-only ; then
+   enableval=host
+ fi
+ case "$enableval" in
+-  all) TARGETS_TO_BUILD="X86 Sparc PowerPC ARM Mips CellSPU XCore MSP430 Hexagon CBackend CppBackend MBlaze PTX" ;;
++  all) TARGETS_TO_BUILD="X86 Sparc PowerPC ARM Mips CellSPU XCore MSP430 AVR Hexagon CBackend CppBackend MBlaze PTX" ;;
+   *)for a_target in `echo $enableval|sed -e 's/,/ /g' ` ; do
+       case "$a_target" in
+         x86)      TARGETS_TO_BUILD="X86 $TARGETS_TO_BUILD" ;;
+@@ -5247,6 +5250,7 @@ case "$enableval" in
+         spu)      TARGETS_TO_BUILD="CellSPU $TARGETS_TO_BUILD" ;;
+         xcore)    TARGETS_TO_BUILD="XCore $TARGETS_TO_BUILD" ;;
+         msp430)   TARGETS_TO_BUILD="MSP430 $TARGETS_TO_BUILD" ;;
++        avr)      TARGETS_TO_BUILD="AVR $TARGETS_TO_BUILD" ;;
+         hexagon)  TARGETS_TO_BUILD="Hexagon $TARGETS_TO_BUILD" ;;
+         cbe)      TARGETS_TO_BUILD="CBackend $TARGETS_TO_BUILD" ;;
+         cpp)      TARGETS_TO_BUILD="CppBackend $TARGETS_TO_BUILD" ;;
+@@ -5263,6 +5267,7 @@ case "$enableval" in
+             CellSPU|SPU) TARGETS_TO_BUILD="CellSPU $TARGETS_TO_BUILD" ;;
+             XCore)       TARGETS_TO_BUILD="XCore $TARGETS_TO_BUILD" ;;
+             MSP430)      TARGETS_TO_BUILD="MSP430 $TARGETS_TO_BUILD" ;;
++	    AVR)	 TARGETS_TO_BUILD="AVR $TARGETS_TO_BUILD" ;;
+             Hexagon)     TARGETS_TO_BUILD="Hexagon $TARGETS_TO_BUILD" ;;
+             PTX)         TARGETS_TO_BUILD="PTX $TARGETS_TO_BUILD" ;;
+             *)       { { echo "$as_me:$LINENO: error: Can not set target to build" >&5
