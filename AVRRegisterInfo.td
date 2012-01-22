@@ -11,8 +11,8 @@
 //  Declarations that describe the AVR register file
 //===----------------------------------------------------------------------===//
 
-class AVRReg<bits<5> num, string n> : Register<n> {
-  field bits<5> Num = num;
+class AVRReg<bits<6> num, string n> : Register<n> {
+  field bits<6> Num = num;
   let Namespace = "AVR";
 }
 
@@ -58,6 +58,7 @@ def R28 : AVRReg<28, "r28">;
 def R29 : AVRReg<29, "r29">;
 def R30 : AVRReg<30, "r30">;
 def R31 : AVRReg<31, "r31">;
+def PC  : AVRReg<32, "pc">;
 
 // def subreg_8bit : SubRegIndex { let Namespace = "MSP430"; }
 
@@ -84,14 +85,6 @@ def GR8 : RegisterClass<"AVR", [i8], 8,
    // Volatile registers
   (add R0, R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11, R12, R13, R14, R15)>;
 
-// def GR16 : RegisterClass<"MSP430", [i16], 16,
-   // // Volatile registers
-  // (add R12W, R13W, R14W, R15W, R11W, R10W, R9W, R8W, R7W, R6W, R5W,
-   // // Frame pointer, sometimes allocable
-   // FPW,
-   // // Volatile, but not allocable
-   // PCW, SPW, SRW, CGW)>
-// {
-  // let SubRegClasses = [(GR8 subreg_8bit)];
-// }
+def GR16 : RegisterClass<"AVR", [i16], 16,
+   (add PC)>;
 

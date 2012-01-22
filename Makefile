@@ -12,7 +12,7 @@ LIBRARYNAME = LLVMAVRCodeGen
 TARGET = AVR
 
 # Make sure that tblgen is run, first thing.
-BUILT_SOURCES = AVRGenRegisterInfo.inc #MSP430GenInstrInfo.inc \
+BUILT_SOURCES = AVRGenRegisterInfo.inc AVRGenCallingConv.inc #MSP430GenInstrInfo.inc \
 		MSP430GenAsmWriter.inc \
 		MSP430GenDAGISel.inc MSP430GenCallingConv.inc \
 		MSP430GenSubtargetInfo.inc
