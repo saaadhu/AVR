@@ -11,6 +11,7 @@
 //
 //===----------------------------------------------------------------------===//
 
+#include "AVRMCAsmInfo.h"
 #include "AVRMCTargetDesc.h"
 #include "llvm/MC/MCCodeGenInfo.h"
 #include "llvm/MC/MCInstrInfo.h"
@@ -70,8 +71,8 @@ static MCInstPrinter *createMSP430MCInstPrinter(const Target &T,
 
 */
 extern "C" void LLVMInitializeAVRTargetMC() {
-  // Register the MC asm info.
-  //RegisterMCAsmInfo<MSP430MCAsmInfo> X(TheMSP430Target);
+  //  Register the MC asm info.
+  RegisterMCAsmInfo<AVRMCAsmInfo> X(TheAVRTarget);
 
   // Register the MC codegen info.
   TargetRegistry::RegisterMCCodeGenInfo(TheAVRTarget,

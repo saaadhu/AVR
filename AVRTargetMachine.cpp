@@ -33,7 +33,8 @@ AVRTargetMachine::AVRTargetMachine(const Target &T,
                                          CodeGenOpt::Level OL)
   : LLVMTargetMachine(T, TT, CPU, FS, Options, RM, CM, OL),
     // FIXME: Check TargetData string.
-    DataLayout("e-p:16:16:16-i8:8:8-i16:16:16-i32:16:32-n8:16")
+    DataLayout("e-p:16:16:16-i8:8:8-i16:16:16-i32:16:32-n8:16"),
+    TLInfo(*this)
 {
 }
 

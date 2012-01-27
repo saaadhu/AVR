@@ -15,6 +15,7 @@
 #ifndef LLVM_TARGET_AVR__TARGETMACHINE_H
 #define LLVM_TARGET_AVR_TARGETMACHINE_H
 
+#include "AVRISelLowering.h"
 #include "llvm/Target/TargetData.h"
 #include "llvm/Target/TargetFrameLowering.h"
 #include "llvm/Target/TargetMachine.h"
@@ -23,12 +24,17 @@ namespace llvm {
 
 class AVRTargetMachine : public LLVMTargetMachine {
   const TargetData       DataLayout;       // Calculates type size & alignment
+  AVRTargetLowering	 TLInfo;
 
 public:
   AVRTargetMachine(const Target &T, StringRef TT,
                       StringRef CPU, StringRef FS, const TargetOptions &Options,
                       Reloc::Model RM, CodeModel::Model CM,
                       CodeGenOpt::Level OL);
+
+  virtual const AVRTargetLowering* getTargetLowering() const {
+    return &TLInfo;
+  }
 
   virtual const TargetFrameLowering *getFrameLowering() const {
     return NULL;
