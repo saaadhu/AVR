@@ -65,6 +65,36 @@ index 4739fb5..ed0e11c 100644
      ppc,     // PPC: powerpc
      ppc64,   // PPC64: powerpc64, ppu
      sparc,   // Sparc: sparc
+diff --git a/lib/Support/Triple.cpp b/lib/Support/Triple.cpp
+index 8f58e70..f965cf2 100644
+--- a/lib/Support/Triple.cpp
++++ b/lib/Support/Triple.cpp
+@@ -26,6 +26,7 @@ const char *Triple::getArchTypeName(ArchType Kind) {
+   case mips64:  return "mips64";
+   case mips64el:return "mips64el";
+   case msp430:  return "msp430";
++  case avr:	return "avr";
+   case ppc64:   return "powerpc64";
+   case ppc:     return "powerpc";
+   case sparc:   return "sparc";
+@@ -145,6 +146,8 @@ Triple::ArchType Triple::getArchTypeForLLVMName(StringRef Name) {
+     return mips64el;
+   if (Name == "msp430")
+     return msp430;
++  if (Name == "avr")
++    return avr;
+   if (Name == "ppc64")
+     return ppc64;
+   if (Name == "ppc32")
+@@ -290,6 +293,8 @@ Triple::ArchType Triple::ParseArch(StringRef ArchName) {
+     return cellspu;
+   else if (ArchName == "msp430")
+     return msp430;
++  else if (ArchName == "avr")
++    return avr;
+   else if (ArchName == "mips" || ArchName == "mipseb" ||
+            ArchName == "mipsallegrex")
+     return mips;
 diff --git a/lib/Target/LLVMBuild.txt b/lib/Target/LLVMBuild.txt
 index 5a42ca5..fa142a3 100644
 --- a/lib/Target/LLVMBuild.txt

@@ -1,4 +1,4 @@
-//===-- MSP430TargetMachine.cpp - Define TargetMachine for MSP430 ---------===//
+//===-- AVRTargetMachine.cpp - Define TargetMachine for MSP430 ---------===//
 //
 //                     The LLVM Compiler Infrastructure
 //
@@ -7,7 +7,7 @@
 //
 //===----------------------------------------------------------------------===//
 //
-// Top-level implementation for the MSP430 target.
+// Top-level implementation for the AVR target.
 //
 //===----------------------------------------------------------------------===//
 
