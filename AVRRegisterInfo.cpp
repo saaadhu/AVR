@@ -37,60 +37,36 @@ AVRRegisterInfo::AVRRegisterInfo(AVRTargetMachine &tm,
   : AVRGenRegisterInfo(AVR::PC), TM(tm), TII(tii) {
 }
 
-/*
 const unsigned*
 AVRRegisterInfo::getCalleeSavedRegs(const MachineFunction *MF) const {
   const TargetFrameLowering *TFI = MF->getTarget().getFrameLowering();
   const Function* F = MF->getFunction();
   static const unsigned CalleeSavedRegs[] = {
-    AVR::FPW, AVR::R5W, AVR::R6W, AVR::R7W,
-    AVR::R8W, AVR::R9W, AVR::R10W, AVR::R11W,
     0
   };
   static const unsigned CalleeSavedRegsFP[] = {
-    AVR::R5W, AVR::R6W, AVR::R7W,
-    AVR::R8W, AVR::R9W, AVR::R10W, AVR::R11W,
     0
   };
   static const unsigned CalleeSavedRegsIntr[] = {
-    AVR::FPW,  AVR::R5W,  AVR::R6W,  AVR::R7W,
-    AVR::R8W,  AVR::R9W,  AVR::R10W, AVR::R11W,
-    AVR::R12W, AVR::R13W, AVR::R14W, AVR::R15W,
     0
   };
   static const unsigned CalleeSavedRegsIntrFP[] = {
-    AVR::R5W,  AVR::R6W,  AVR::R7W,
-    AVR::R8W,  AVR::R9W,  AVR::R10W, AVR::R11W,
-    AVR::R12W, AVR::R13W, AVR::R14W, AVR::R15W,
     0
   };
 
+  /*
   if (TFI->hasFP(*MF))
-    return (F->getCallingConv() == CallingConv::AVR_INTR ?
-            CalleeSavedRegsIntrFP : CalleeSavedRegsFP);
+    return (CalleeSavedRegsFP);
   else
-    return (F->getCallingConv() == CallingConv::AVR_INTR ?
-            CalleeSavedRegsIntr : CalleeSavedRegs);
+    return (CalleeSavedRegs);
+  */
+  return CalleeSavedRegs;
 
 }
 
 BitVector AVRRegisterInfo::getReservedRegs(const MachineFunction &MF) const {
   BitVector Reserved(getNumRegs());
   const TargetFrameLowering *TFI = MF.getTarget().getFrameLowering();
-
-  // Mark 4 special registers with subregisters as reserved.
-  Reserved.set(AVR::PCB);
-  Reserved.set(AVR::SPB);
-  Reserved.set(AVR::SRB);
-  Reserved.set(AVR::CGB);
-  Reserved.set(AVR::PCW);
-  Reserved.set(AVR::SPW);
-  Reserved.set(AVR::SRW);
-  Reserved.set(AVR::CGW);
-
-  // Mark frame pointer as reserved if needed.
-  if (TFI->hasFP(MF))
-    Reserved.set(AVR::FPW);
 
   return Reserved;
 }
@@ -103,6 +79,7 @@ AVRRegisterInfo::getPointerRegClass(unsigned Kind) const {
 void AVRRegisterInfo::
 eliminateCallFramePseudoInstr(MachineFunction &MF, MachineBasicBlock &MBB,
                               MachineBasicBlock::iterator I) const {
+  /*
   const TargetFrameLowering *TFI = MF.getTarget().getFrameLowering();
 
   if (!TFI->hasReservedCallFrame(MF)) {
@@ -158,11 +135,13 @@ eliminateCallFramePseudoInstr(MachineFunction &MF, MachineBasicBlock &MBB,
   }
 
   MBB.erase(I);
+  */
 }
 
 void
 AVRRegisterInfo::eliminateFrameIndex(MachineBasicBlock::iterator II,
                                         int SPAdj, RegScavenger *RS) const {
+  /*
   assert(SPAdj == 0 && "Unexpected");
 
   unsigned i = 0;
@@ -217,11 +196,13 @@ AVRRegisterInfo::eliminateFrameIndex(MachineBasicBlock::iterator II,
 
   MI.getOperand(i).ChangeToRegister(BasePtr, false);
   MI.getOperand(i+1).ChangeToImmediate(Offset);
+  */
 }
 
 void
 AVRRegisterInfo::processFunctionBeforeFrameFinalized(MachineFunction &MF)
                                                                          const {
+  /*
   const TargetFrameLowering *TFI = MF.getTarget().getFrameLowering();
 
   // Create a frame entry for the FPW register that must be saved.
@@ -231,11 +212,12 @@ AVRRegisterInfo::processFunctionBeforeFrameFinalized(MachineFunction &MF)
     assert(FrameIdx == MF.getFrameInfo()->getObjectIndexBegin() &&
            "Slot for FPW register must be last in order to be found!");
   }
+  */
 }
 
 unsigned AVRRegisterInfo::getFrameRegister(const MachineFunction &MF) const {
   const TargetFrameLowering *TFI = MF.getTarget().getFrameLowering();
 
-  return TFI->hasFP(MF) ? AVR::FPW : AVR::SPW;
+  return 0;
+  //return TFI->hasFP(MF) ? AVR::FPW : AVR::SPW;
 }
-*/

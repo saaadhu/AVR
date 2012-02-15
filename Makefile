@@ -12,12 +12,12 @@ LIBRARYNAME = LLVMAVRCodeGen
 TARGET = AVR
 
 # Make sure that tblgen is run, first thing.
-BUILT_SOURCES = AVRGenRegisterInfo.inc AVRGenCallingConv.inc #MSP430GenInstrInfo.inc \
-		MSP430GenAsmWriter.inc \
+BUILT_SOURCES = AVRGenRegisterInfo.inc AVRGenInstrInfo.inc AVRGenAsmWriter.inc AVRGenDAGISel.inc AVRGenCallingConv.inc AVRGenSubtargetInfo.inc\
+		#MSP430GenAsmWriter.inc \
 		MSP430GenDAGISel.inc MSP430GenCallingConv.inc \
 		MSP430GenSubtargetInfo.inc
 
-DIRS = TargetInfo MCTargetDesc
+DIRS = InstPrinter TargetInfo MCTargetDesc 
 
 include $(LEVEL)/Makefile.common
 

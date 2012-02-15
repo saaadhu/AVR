@@ -39,21 +39,21 @@ include "AVRCallingConv.td"
 // Instruction Descriptions
 //===----------------------------------------------------------------------===//
 
-//include "AVRInstrInfo.td"
+include "AVRInstrInfo.td"
 
-//def AVRInstrInfo : InstrInfo;
+def AVRInstrInfo : InstrInfo;
 
-//def AVRInstPrinter : AsmWriter {
- // string AsmWriterClassName  = "InstPrinter";
-  // bit isMCAsmWriter = 1;
-//}
+def AVRInstPrinter : AsmWriter {
+  string AsmWriterClassName  = "InstPrinter";
+   bit isMCAsmWriter = 1;
+}
 
 //===----------------------------------------------------------------------===//
 // Target Declaration
 //===----------------------------------------------------------------------===//
 
  def AVR : Target {
-  //let InstructionSet = AVRInstrInfo;
-  //let AssemblyWriters = [AVRInstPrinter];
+  let InstructionSet = AVRInstrInfo;
+  let AssemblyWriters = [AVRInstPrinter];
 }
 

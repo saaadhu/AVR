@@ -34,8 +34,7 @@ private:
   unsigned StackAlign;
 public:
   AVRRegisterInfo(AVRTargetMachine &tm, const TargetInstrInfo &tii);
-
-  /*
+  
   /// Code Generation virtual methods...
   const unsigned *getCalleeSavedRegs(const MachineFunction *MF = 0) const;
 
@@ -53,7 +52,6 @@ public:
 
   // Debug information queries.
   unsigned getFrameRegister(const MachineFunction &MF) const;
-  */
 };
 
 } // end namespace llvm

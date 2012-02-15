@@ -7,7 +7,7 @@
 //
 //===----------------------------------------------------------------------===//
 //
-// This file declares the MSP430 specific subclass of TargetMachine.
+// This file declares the AVR specific subclass of TargetMachine.
 //
 //===----------------------------------------------------------------------===//
 
@@ -15,7 +15,12 @@
 #ifndef LLVM_TARGET_AVR__TARGETMACHINE_H
 #define LLVM_TARGET_AVR_TARGETMACHINE_H
 
+#include "AVRInstrInfo.h"
 #include "AVRISelLowering.h"
+#include "AVRFrameLowering.h"
+//#include "AVRSelectionDAGInfo.h"
+#include "AVRRegisterInfo.h"
+#include "AVRSubtarget.h"
 #include "llvm/Target/TargetData.h"
 #include "llvm/Target/TargetFrameLowering.h"
 #include "llvm/Target/TargetMachine.h"
@@ -23,8 +28,12 @@
 namespace llvm {
 
 class AVRTargetMachine : public LLVMTargetMachine {
+  AVRSubtarget		 Subtarget;
   const TargetData       DataLayout;       // Calculates type size & alignment
+  AVRInstrInfo		 InstrInfo;
   AVRTargetLowering	 TLInfo;
+  //AVRSelectionDAGInfo	 TSInfo;
+  AVRFrameLowering	 FrameLowering;
 
 public:
   AVRTargetMachine(const Target &T, StringRef TT,
@@ -32,20 +41,29 @@ public:
                       Reloc::Model RM, CodeModel::Model CM,
                       CodeGenOpt::Level OL);
 
+  virtual const TargetFrameLowering *getFrameLowering() const {
+    return &FrameLowering;
+  }
+
+  virtual const AVRInstrInfo* getInstrInfo() const  { return &InstrInfo; }
+  virtual const TargetData *getTargetData() const     { return &DataLayout;}
+  virtual const AVRSubtarget *getSubtargetImpl() const { return &Subtarget; }
+  virtual const TargetRegisterInfo *getRegisterInfo() const {
+    return &InstrInfo.getRegisterInfo();
+  }
   virtual const AVRTargetLowering* getTargetLowering() const {
     return &TLInfo;
   }
 
-  virtual const TargetFrameLowering *getFrameLowering() const {
-    return NULL;
+  /*
+  virtual const AVRSelectionDAGInfo* getSelectionDAGInfo() const {
+    return &TSInfo;
   }
-  virtual const TargetData *getTargetData() const     { return &DataLayout;}
+  */
 
-  virtual const TargetRegisterInfo *getRegisterInfo() const {
-    return NULL;
-  }
 
+  virtual bool addInstSelector(PassManagerBase &PM);
 }; 
 } // end namespace llvm
 
-#endif // LLVM_TARGET_MSP430_TARGETMACHINE_H
+#endif // LLVM_TARGET_MSP431_TARGETMACHINE_H

@@ -7,7 +7,7 @@
 //
 //===----------------------------------------------------------------------===//
 //
-// This file provides MSP430 specific target descriptions.
+// This file provides AVR specific target descriptions.
 //
 //===----------------------------------------------------------------------===//
 
@@ -23,18 +23,16 @@ extern Target TheAVRTarget;
 
 } // End llvm namespace
 
-// Defines symbolic names for MSP430 registers.
+// Defines symbolic names for AVR registers.
 // This defines a mapping from register name to register number.
 #define GET_REGINFO_ENUM
 #include "AVRGenRegisterInfo.inc"
 
-/*
-// Defines symbolic names for the MSP430 instructions.
+// Defines symbolic names for the AVR instructions.
 #define GET_INSTRINFO_ENUM
-#include "MSP430GenInstrInfo.inc"
+#include "AVRGenInstrInfo.inc"
 
 #define GET_SUBTARGETINFO_ENUM
-#include "MSP430GenSubtargetInfo.inc"
-*/
+#include "AVRGenSubtargetInfo.inc"
 
 #endif

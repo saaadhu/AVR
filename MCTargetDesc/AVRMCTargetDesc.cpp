@@ -11,8 +11,9 @@
 //
 //===----------------------------------------------------------------------===//
 
-#include "AVRMCAsmInfo.h"
 #include "AVRMCTargetDesc.h"
+#include "AVRMCAsmInfo.h"
+#include "InstPrinter/AVRInstPrinter.h"
 #include "llvm/MC/MCCodeGenInfo.h"
 #include "llvm/MC/MCInstrInfo.h"
 #include "llvm/MC/MCRegisterInfo.h"
@@ -22,35 +23,35 @@
 #define GET_REGINFO_MC_DESC
 #include "AVRGenRegisterInfo.inc"
 using namespace llvm;
-/*
+
 #define GET_INSTRINFO_MC_DESC
 #include "AVRGenInstrInfo.inc"
 
 #define GET_SUBTARGETINFO_MC_DESC
-#include "MSP430GenSubtargetInfo.inc"
+#include "AVRGenSubtargetInfo.inc"
 
 
 
-static MCInstrInfo *createMSP430MCInstrInfo() {
+static MCInstrInfo *createAVRMCInstrInfo() {
   MCInstrInfo *X = new MCInstrInfo();
-  InitMSP430MCInstrInfo(X);
+  InitAVRMCInstrInfo(X);
   return X;
 }
 
-static MCRegisterInfo *createMSP430MCRegisterInfo(StringRef TT) {
+static MCRegisterInfo *createAVRMCRegisterInfo(StringRef TT) {
   MCRegisterInfo *X = new MCRegisterInfo();
-  InitMSP430MCRegisterInfo(X, MSP430::PCW);
+  InitAVRMCRegisterInfo(X, AVR::PC);
   return X;
 }
 
-static MCSubtargetInfo *createMSP430MCSubtargetInfo(StringRef TT, StringRef CPU,
+
+static MCSubtargetInfo *createAVRMCSubtargetInfo(StringRef TT, StringRef CPU,
                                                     StringRef FS) {
   MCSubtargetInfo *X = new MCSubtargetInfo();
-  InitMSP430MCSubtargetInfo(X, TT, CPU, FS);
+  InitAVRMCSubtargetInfo(X, TT, CPU, FS);
   return X;
 }
 
-*/
 static MCCodeGenInfo *createAVRCCodeGenInfo(StringRef TT, Reloc::Model RM,
                                                 CodeModel::Model CM,
                                                 CodeGenOpt::Level OL) {
@@ -59,17 +60,13 @@ static MCCodeGenInfo *createAVRCCodeGenInfo(StringRef TT, Reloc::Model RM,
   return X;
 }
 
-/*
-static MCInstPrinter *createMSP430MCInstPrinter(const Target &T,
+static MCInstPrinter *createAVRMCInstPrinter(const Target &T,
                                                 unsigned SyntaxVariant,
                                                 const MCAsmInfo &MAI,
                                                 const MCSubtargetInfo &STI) {
-  if (SyntaxVariant == 0)
-    return new MSP430InstPrinter(MAI);
-  return 0;
+    return new AVRInstPrinter(MAI);
 }
 
-*/
 extern "C" void LLVMInitializeAVRTargetMC() {
   //  Register the MC asm info.
   RegisterMCAsmInfo<AVRMCAsmInfo> X(TheAVRTarget);
@@ -79,15 +76,15 @@ extern "C" void LLVMInitializeAVRTargetMC() {
                                         createAVRCCodeGenInfo);
 
   // Register the MC instruction info.
-  //TargetRegistry::RegisterMCInstrInfo(TheMSP430Target, createMSP430MCInstrInfo);
+  TargetRegistry::RegisterMCInstrInfo(TheAVRTarget, createAVRMCInstrInfo);
 
   // Register the MC register info.
-  //TargetRegistry::RegisterMCRegInfo(TheMSP430Target,
-                                    // createMSP430MCRegisterInfo);
+  TargetRegistry::RegisterMCRegInfo(TheAVRTarget,
+                                     createAVRMCRegisterInfo);
 
   // Register the MC subtarget info.
-  //TargetRegistry::RegisterMCSubtargetInfo(TheMSP430Target, createMSP430MCSubtargetInfo);
+  TargetRegistry::RegisterMCSubtargetInfo(TheAVRTarget, createAVRMCSubtargetInfo);
 
   // Register the MCInstPrinter.
-  //TargetRegistry::RegisterMCInstPrinter(TheMSP430Target, createMSP430MCInstPrinter);
+  TargetRegistry::RegisterMCInstPrinter(TheAVRTarget, createAVRMCInstPrinter);
 }
