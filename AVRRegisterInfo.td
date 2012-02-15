@@ -16,11 +16,11 @@ class AVRReg<bits<6> num, string n> : Register<n> {
   let Namespace = "AVR";
 }
 
-//class MSP430RegWithSubregs<bits<4> num, string n, list<Register> subregs> 
-  //: RegisterWithSubRegs<n, subregs> {
-  //field bits<4> Num = num;
-  //let Namespace = "MSP430";
-//}
+class AVRRegWithSubregs<bits<4> num, string n, list<Register> subregs> 
+  : RegisterWithSubRegs<n, subregs> {
+  field bits<4> Num = num;
+  let Namespace = "AVR";
+}
 
 //===----------------------------------------------------------------------===//
 //  Registers
@@ -58,33 +58,26 @@ def R28 : AVRReg<28, "r28">;
 def R29 : AVRReg<29, "r29">;
 def R30 : AVRReg<30, "r30">;
 def R31 : AVRReg<31, "r31">;
+
 def PC  : AVRReg<32, "pc">;
 
-// def subreg_8bit : SubRegIndex { let Namespace = "MSP430"; }
+def subreg_loreg : SubRegIndex { let Namespace = "AVR"; }
+def subreg_hireg : SubRegIndex { let Namespace = "AVR"; }
 
-// let SubRegIndices = [subreg_8bit] in {
-// def PCW  : MSP430RegWithSubregs<0,  "r0",  [PCB]>;
-// def SPW  : MSP430RegWithSubregs<1,  "r1",  [SPB]>;
-// def SRW  : MSP430RegWithSubregs<2,  "r2",  [SRB]>;
-// def CGW  : MSP430RegWithSubregs<3,  "r3",  [CGB]>;
-// def FPW  : MSP430RegWithSubregs<4,  "r4",  [FPB]>;
-// def R5W  : MSP430RegWithSubregs<5,  "r5",  [R5B]>;
-// def R6W  : MSP430RegWithSubregs<6,  "r6",  [R6B]>;
-// def R7W  : MSP430RegWithSubregs<7,  "r7",  [R7B]>;
-// def R8W  : MSP430RegWithSubregs<8,  "r8",  [R8B]>;
-// def R9W  : MSP430RegWithSubregs<9,  "r9",  [R9B]>;
-// def R10W : MSP430RegWithSubregs<10, "r10", [R10B]>;
-// def R11W : MSP430RegWithSubregs<11, "r11", [R11B]>;
-// def R12W : MSP430RegWithSubregs<12, "r12", [R12B]>;
-// def R13W : MSP430RegWithSubregs<13, "r13", [R13B]>;
-// def R14W : MSP430RegWithSubregs<14, "r14", [R14B]>;
-// def R15W : MSP430RegWithSubregs<15, "r15", [R15B]>;
-// }
+let SubRegIndices = [subreg_hireg, subreg_loreg] in {
+def X	: AVRRegWithSubregs<0, "x", [R27, R26]>;
+def Y	: AVRRegWithSubregs<1, "y", [R29, R28]>;
+def Z	: AVRRegWithSubregs<2, "z", [R31, R30]>;
+}
+
 
 def GR8 : RegisterClass<"AVR", [i8], 8,
    // Volatile registers
   (add R0, R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11, R12, R13, R14, R15)>;
 
 def GR16 : RegisterClass<"AVR", [i16], 16,
-   (add PC)>;
+   (add PC, X, Y, Z)>
+{
+  let SubRegClasses = [(GR8 subreg_hireg, subreg_loreg)];
+}
 
