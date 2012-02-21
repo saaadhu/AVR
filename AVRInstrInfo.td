@@ -250,19 +250,21 @@ def MOV16rr : I16rr<0x0,
                     "mov.w\t{$src, $dst}",
                     []>;
 }
+*/
 
 // FIXME: Provide proper encoding!
 let isReMaterializable = 1, isAsCheapAsAMove = 1 in {
 def MOV8ri  : I8ri<0x0,
                    (outs GR8:$dst), (ins i8imm:$src),
-                   "mov.b\t{$src, $dst}",
+                   "mov\t{$src, $dst}",
                    [(set GR8:$dst, imm:$src)]>;
 def MOV16ri : I16ri<0x0,
                     (outs GR16:$dst), (ins i16imm:$src),
-                    "mov.w\t{$src, $dst}",
+                    "movw\t{$src, $dst}",
                     [(set GR16:$dst, imm:$src)]>;
 }
 
+/*
 let canFoldAsLoad = 1, isReMaterializable = 1 in {
 def MOV8rm  : I8rm<0x0,
                    (outs GR8:$dst), (ins memsrc:$src),
