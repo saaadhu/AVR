@@ -235,6 +235,7 @@ let mayStore = 1 in
 def PUSH16r  : II16r<0x0,
                      (outs), (ins GR16:$reg), "push.w\t$reg",[]>;
 }
+*/
 
 //===----------------------------------------------------------------------===//
 // Move Instructions
@@ -243,14 +244,13 @@ def PUSH16r  : II16r<0x0,
 let neverHasSideEffects = 1 in {
 def MOV8rr  : I8rr<0x0,
                    (outs GR8:$dst), (ins GR8:$src),
-                   "mov.b\t{$src, $dst}",
+                   "mov \t{$src, $dst}",
                    []>;
 def MOV16rr : I16rr<0x0,
                     (outs GR16:$dst), (ins GR16:$src),
-                    "mov.w\t{$src, $dst}",
+                    "movw \t{$src, $dst}",
                     []>;
 }
-*/
 
 // FIXME: Provide proper encoding!
 let isReMaterializable = 1, isAsCheapAsAMove = 1 in {

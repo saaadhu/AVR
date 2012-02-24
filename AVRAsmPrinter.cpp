@@ -70,8 +70,6 @@ void AVRAsmPrinter::printOperand(const MachineInstr *MI, int OpNum,
     O << AVRInstPrinter::getRegisterName(MO.getReg());
     return;
   case MachineOperand::MO_Immediate:
-    if (!Modifier || strcmp(Modifier, "nohash"))
-      O << '#';
     O << MO.getImm();
     return;
   case MachineOperand::MO_MachineBasicBlock:
