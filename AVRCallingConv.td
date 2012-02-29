@@ -16,13 +16,13 @@ def RetCC_AVR : CallingConv<[
   CCIfType<[i8], CCPromoteToType<i16>>,
 
   // i16 are returned in registers R25, R24
-  CCIfType<[i16], CCAssignToReg<[R25, R24]>>,
+  CCIfType<[i16], CCAssignToReg<[R24, R25]>>,
 
   // i32 are returned in registers R25, R24, R23, R22
-  CCIfType<[i32], CCAssignToReg<[R25, R24, R23, R22]>>,
+  CCIfType<[i32], CCAssignToReg<[R22, R23, R24, R25]>>,
 
   // i64 are returned in registers R25, R24, R23, R22, R21, R20, R19, R18
-  CCIfType<[i32], CCAssignToReg<[R25, R24, R23, R22, R21, R20, R19, R18]>>
+  CCIfType<[i32], CCAssignToReg<[R18, R19, R20, R21, R22, R23, R24, R25]>>
 ]>;
 
 //===----------------------------------------------------------------------===//
