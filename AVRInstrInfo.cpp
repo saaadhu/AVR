@@ -93,7 +93,6 @@ void AVRInstrInfo::copyPhysReg(MachineBasicBlock &MBB,
                                   MachineBasicBlock::iterator I, DebugLoc DL,
                                   unsigned DestReg, unsigned SrcReg,
                                   bool KillSrc) const {
-  /*
   unsigned Opc;
   if (AVR::GR16RegClass.contains(DestReg, SrcReg))
     Opc = AVR::MOV16rr;
@@ -104,11 +103,10 @@ void AVRInstrInfo::copyPhysReg(MachineBasicBlock &MBB,
 
   BuildMI(MBB, I, DL, get(Opc), DestReg)
     .addReg(SrcReg, getKillRegState(KillSrc));
-  */
 }
 
 unsigned AVRInstrInfo::RemoveBranch(MachineBasicBlock &MBB) const {
-  MachineBasicBlock::iterator I = MBB.end();
+  //MachineBasicBlock::iterator I = MBB.end();
   unsigned Count = 0;
 
   /*
