@@ -40,33 +40,37 @@ AVRRegisterInfo::AVRRegisterInfo(AVRTargetMachine &tm,
 const unsigned*
 AVRRegisterInfo::getCalleeSavedRegs(const MachineFunction *MF) const {
   const TargetFrameLowering *TFI = MF->getTarget().getFrameLowering();
-  const Function* F = MF->getFunction();
+  //const Function* F = MF->getFunction();
   static const unsigned CalleeSavedRegs[] = {
-    0
+    AVR::R2, AVR::R3, AVR::R4, AVR::R5, AVR::R6,
+    AVR::R7, AVR::R8, AVR::R9, AVR::R10, AVR::R11,
+    AVR::R12, AVR::R13, AVR::R14, AVR::R15, AVR::R16, AVR::R17
   };
   static const unsigned CalleeSavedRegsFP[] = {
-    0
+    AVR::R28, AVR::R29
   };
+  /*
   static const unsigned CalleeSavedRegsIntr[] = {
     0
   };
   static const unsigned CalleeSavedRegsIntrFP[] = {
     0
   };
+  */
 
-  /*
+  // TODO : Change this when adding INTR calling conv
   if (TFI->hasFP(*MF))
     return (CalleeSavedRegsFP);
   else
     return (CalleeSavedRegs);
-  */
-  return CalleeSavedRegs;
-
 }
 
 BitVector AVRRegisterInfo::getReservedRegs(const MachineFunction &MF) const {
   BitVector Reserved(getNumRegs());
   const TargetFrameLowering *TFI = MF.getTarget().getFrameLowering();
+
+  if (TFI->hasFP(MF))
+    Reserved.set(AVR::Y);
 
   return Reserved;
 }
@@ -216,8 +220,10 @@ AVRRegisterInfo::processFunctionBeforeFrameFinalized(MachineFunction &MF)
 }
 
 unsigned AVRRegisterInfo::getFrameRegister(const MachineFunction &MF) const {
+  /*
   const TargetFrameLowering *TFI = MF.getTarget().getFrameLowering();
+  return TFI->hasFP(MF) ? AVR::Y : AVR::SPW;
+  */
 
-  return 0;
-  //return TFI->hasFP(MF) ? AVR::FPW : AVR::SPW;
+  return AVR::Y;
 }
