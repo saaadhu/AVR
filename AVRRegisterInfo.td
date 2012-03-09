@@ -60,6 +60,8 @@ def R30 : AVRReg<30, "r30">;
 def R31 : AVRReg<31, "r31">;
 
 def PC  : AVRReg<32, "pc">;
+def SPH : AVRReg<33, "0x3D">;
+def SPL : AVRReg<33, "0x3E">;
 
 def subreg_loreg : SubRegIndex { let Namespace = "AVR"; }
 def subreg_hireg : SubRegIndex { let Namespace = "AVR"; }
@@ -74,6 +76,9 @@ def Z	: AVRRegWithSubregs<2, "z", [R31, R30]>;
 def GR8 : RegisterClass<"AVR", [i8], 8,
    // Volatile registers
   (add R0, R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11, R12, R13, R14, R15, R16, R17, R18, R19, R20, R21, R22, R23, R24, R25, R26, R27, R28, R29, R30, R31)>;
+
+def IO8 : RegisterClass<"AVR", [i8], 8,
+  (add SPH, SPL)>;
 
 def GR16 : RegisterClass<"AVR", [i16], 16,
    (add PC, X, Y, Z)>

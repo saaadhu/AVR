@@ -30,11 +30,11 @@ def RetCC_AVR : CallingConv<[
 //===----------------------------------------------------------------------===//
 def CC_AVR : CallingConv<[
   // Promote i8 arguments to i16.
-  CCIfType<[i8], CCPromoteToType<i16>>,
+  CCIfType<[i8], CCAssignToReg<[R24, R22, R20, R18, R16, R14, R12]>>,
 
   // The first 4 integer arguments of non-varargs functions are passed in
   // integer registers.
-  CCIfNotVarArg<CCIfType<[i16], CCAssignToReg<[R25, R24]>>>,
+  //CCIfNotVarArg<CCIfType<[i16], CCAssignToReg<[R25W]>>>,
 
   // Integer values get stored in stack slots that are 2 bytes in
   // size and 2-byte aligned.

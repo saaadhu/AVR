@@ -47,6 +47,8 @@ AVRTargetLowering::AVRTargetLowering(AVRTargetMachine &tm) :
 
   // Set up the register classes.
   addRegisterClass(MVT::i8,  AVR::GR8RegisterClass);
+  addRegisterClass(MVT::i8,  AVR::IO8RegisterClass);
+  addRegisterClass(MVT::i16, AVR::GR16RegisterClass);
 
   // Compute derived properties from the register classes
   computeRegisterProperties();
@@ -212,7 +214,16 @@ AVRTargetLowering::LowerCCCArguments(SDValue Chain,
 #endif
           llvm_unreachable(0);
         }
-/*
+      case MVT::i8:
+        {
+          unsigned VReg =
+          RegInfo.createVirtualRegister(AVR::GR8RegisterClass);
+          RegInfo.addLiveIn(VA.getLocReg(), VReg);
+          SDValue ArgValue = DAG.getCopyFromReg(Chain, dl, VReg, RegVT);
+
+          InVals.push_back(ArgValue);
+          break;
+        }
       case MVT::i16:
         unsigned VReg =
           RegInfo.createVirtualRegister(AVR::GR16RegisterClass);
@@ -233,7 +244,6 @@ AVRTargetLowering::LowerCCCArguments(SDValue Chain,
           ArgValue = DAG.getNode(ISD::TRUNCATE, dl, VA.getValVT(), ArgValue);
 
         InVals.push_back(ArgValue);
-*/
       }
     } else {
       // Sanity check

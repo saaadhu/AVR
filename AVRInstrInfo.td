@@ -222,20 +222,32 @@ let isCall = 1 in
                           "call\t${dst:mem}", [(AVRcall (load addr:$dst))]>;
   }
 
+*/
+
+//  IO Instructions
+//
+def OUT      : I8rr<0x0,
+		   (outs IO8:$dst), (ins GR8:$src),
+                   "out \t{$dst, $src}",
+                    []>;
+
+def IN      : I8rr<0x0,
+		   (outs GR8:$dst), (ins IO8:$src),
+                   "in \t{$dst, $src}",
+                    []>;
 
 //===----------------------------------------------------------------------===//
 //  Miscellaneous Instructions...
 //
-let Defs = [SPW], Uses = [SPW], neverHasSideEffects=1 in {
+let Defs = [SPH, SPL], Uses = [SPH, SPL], neverHasSideEffects=1 in {
 let mayLoad = 1 in
-def POP16r   : IForm16<0x0, DstReg, SrcPostInc, Size2Bytes,
-                       (outs GR16:$reg), (ins), "pop.w\t$reg", []>;
+def POP      : II8r<0x0,
+                       (outs GR8:$reg), (ins), "pop \t$reg", []>;
 
 let mayStore = 1 in
-def PUSH16r  : II16r<0x0,
-                     (outs), (ins GR16:$reg), "push.w\t$reg",[]>;
+def PUSH  : II8r<0x0,
+                     (outs), (ins GR8:$reg), "push \t$reg",[]>;
 }
-*/
 
 //===----------------------------------------------------------------------===//
 // Move Instructions
@@ -244,11 +256,11 @@ def PUSH16r  : II16r<0x0,
 let neverHasSideEffects = 1 in {
 def MOV8rr  : I8rr<0x0,
                    (outs GR8:$dst), (ins GR8:$src),
-                   "mov \t{$src, $dst}",
+                   "mov \t{$dst, $src}",
                    []>;
 def MOV16rr : I16rr<0x0,
                     (outs GR16:$dst), (ins GR16:$src),
-                    "movw \t{$src, $dst}",
+                    "movw \t{$dst, $src}",
                     []>;
 }
 
@@ -256,12 +268,8 @@ def MOV16rr : I16rr<0x0,
 let isReMaterializable = 1, isAsCheapAsAMove = 1 in {
 def MOV8ri  : I8ri<0x0,
                    (outs GR8:$dst), (ins i8imm:$src),
-                   "mov\t{$src, $dst}",
+                   "ldi\t{$dst, $src}",
                    [(set GR8:$dst, imm:$src)]>;
-def MOV16ri : I16ri<0x0,
-                    (outs GR16:$dst), (ins i16imm:$src),
-                    "movw\t{$src, $dst}",
-                    [(set GR16:$dst, imm:$src)]>;
 }
 
 /*

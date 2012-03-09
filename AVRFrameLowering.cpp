@@ -39,7 +39,7 @@ bool AVRFrameLowering::hasReservedCallFrame(const MachineFunction &MF) const {
 }
 
 void AVRFrameLowering::emitPrologue(MachineFunction &MF) const {
-  /*
+  
   MachineBasicBlock &MBB = MF.front();   // Prolog goes in entry BB
   MachineFrameInfo *MFI = MF.getFrameInfo();
   AVRMachineFunctionInfo *AVRFI = MF.getInfo<AVRMachineFunctionInfo>();
@@ -64,21 +64,29 @@ void AVRFrameLowering::emitPrologue(MachineFunction &MF) const {
     MFI->setOffsetAdjustment(-NumBytes);
 
     // Save FPW into the appropriate stack slot...
-    BuildMI(MBB, MBBI, DL, TII.get(AVR::PUSH16r))
-      .addReg(AVR::FPW, RegState::Kill);
+    BuildMI(MBB, MBBI, DL, TII.get(AVR::PUSH))
+      .addReg(AVR::R28, RegState::Kill);
+
+    BuildMI(MBB, MBBI, DL, TII.get(AVR::PUSH))
+      .addReg(AVR::R29, RegState::Kill);
 
     // Update FPW with the new base value...
-    BuildMI(MBB, MBBI, DL, TII.get(AVR::MOV16rr), AVR::FPW)
-      .addReg(AVR::SPW);
+    BuildMI(MBB, MBBI, DL, TII.get(AVR::IN), AVR::R28)
+      .addReg(AVR::SPL);
+    BuildMI(MBB, MBBI, DL, TII.get(AVR::IN), AVR::R29)
+      .addReg(AVR::SPH);
 
     // Mark the FramePtr as live-in in every block except the entry.
     for (MachineFunction::iterator I = llvm::next(MF.begin()), E = MF.end();
-         I != E; ++I)
-      I->addLiveIn(AVR::FPW);
+         I != E; ++I) {
+      I->addLiveIn(AVR::R28);
+      I->addLiveIn(AVR::R29);
+    }
 
   } else
     NumBytes = StackSize - AVRFI->getCalleeSavedFrameSize();
 
+/*
   // Skip the callee-saved push instructions.
   while (MBBI != MBB.end() && (MBBI->getOpcode() == AVR::PUSH16r))
     ++MBBI;
@@ -102,7 +110,7 @@ void AVRFrameLowering::emitPrologue(MachineFunction &MF) const {
       MI->getOperand(3).setIsDead();
     }
   }
-  */
+*/
 }
 
 void AVRFrameLowering::emitEpilogue(MachineFunction &MF,
