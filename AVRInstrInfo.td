@@ -347,17 +347,21 @@ def MOV16mm : I16mm<0x0,
 //===----------------------------------------------------------------------===//
 // Arithmetic Instructions
 
+*/
 let Constraints = "$src = $dst" in {
 
-let Defs = [SRW] in {
+//let Defs = [SRW] in {
 
 let isCommutable = 1 in { // X = ADD Y, Z  == X = ADD Z, Y
 
 def ADD8rr  : I8rr<0x0,
                    (outs GR8:$dst), (ins GR8:$src, GR8:$src2),
-                   "add.b\t{$src2, $dst}",
-                   [(set GR8:$dst, (add GR8:$src, GR8:$src2)),
-                    (implicit SRW)]>;
+                   "add \t{$dst, $src2}",
+                   [(set GR8:$dst, (add GR8:$src, GR8:$src2))
+                   ]>;
+}
+}
+/*
 def ADD16rr : I16rr<0x0,
                     (outs GR16:$dst), (ins GR16:$src, GR16:$src2),
                     "add.w\t{$src2, $dst}",
