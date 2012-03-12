@@ -86,36 +86,29 @@ void AVRFrameLowering::emitPrologue(MachineFunction &MF) const {
   } else
     NumBytes = StackSize - AVRFI->getCalleeSavedFrameSize();
 
-/*
+
   // Skip the callee-saved push instructions.
-  while (MBBI != MBB.end() && (MBBI->getOpcode() == AVR::PUSH16r))
+  while (MBBI != MBB.end() && (MBBI->getOpcode() == AVR::PUSH))
     ++MBBI;
 
   if (MBBI != MBB.end())
     DL = MBBI->getDebugLoc();
 
+  /*
   if (NumBytes) { // adjust stack pointer: SPW -= numbytes
-    // If there is an SUB16ri of SPW immediately before this instruction, merge
-    // the two.
-    //NumBytes -= mergeSPUpdates(MBB, MBBI, true);
-    // If there is an ADD16ri or SUB16ri of SPW immediately after this
-    // instruction, merge the two instructions.
-    // mergeSPUpdatesDown(MBB, MBBI, &NumBytes);
-
     if (NumBytes) {
       MachineInstr *MI =
-        BuildMI(MBB, MBBI, DL, TII.get(AVR::SUB16ri), AVR::SPW)
-        .addReg(AVR::SPW).addImm(NumBytes);
+        BuildMI(MBB, MBBI, DL, TII.get(AVR::SUB8ri), AVR::SPL)
+        .addReg(AVR::SPL).addImm(NumBytes);
       // The SRW implicit def is dead.
-      MI->getOperand(3).setIsDead();
+      //MI->getOperand(3).setIsDead();
     }
   }
-*/
+  */
 }
 
 void AVRFrameLowering::emitEpilogue(MachineFunction &MF,
                                        MachineBasicBlock &MBB) const {
-/*
   const MachineFrameInfo *MFI = MF.getFrameInfo();
   AVRMachineFunctionInfo *AVRFI = MF.getInfo<AVRMachineFunctionInfo>();
   const AVRInstrInfo &TII =
@@ -143,7 +136,8 @@ void AVRFrameLowering::emitEpilogue(MachineFunction &MF,
     NumBytes = FrameSize - CSSize;
 
     // pop FPW.
-    BuildMI(MBB, MBBI, DL, TII.get(AVR::POP16r), AVR::FPW);
+    BuildMI(MBB, MBBI, DL, TII.get(AVR::POP), AVR::R29);
+    BuildMI(MBB, MBBI, DL, TII.get(AVR::POP), AVR::R28);
   } else
     NumBytes = StackSize - CSSize;
 
@@ -151,7 +145,7 @@ void AVRFrameLowering::emitEpilogue(MachineFunction &MF,
   while (MBBI != MBB.begin()) {
     MachineBasicBlock::iterator PI = prior(MBBI);
     unsigned Opc = PI->getOpcode();
-    if (Opc != AVR::POP16r && !PI->isTerminator())
+    if (Opc != AVR::POP && !PI->isTerminator())
       break;
     --MBBI;
   }
@@ -164,6 +158,8 @@ void AVRFrameLowering::emitEpilogue(MachineFunction &MF,
   //  mergeSPUpdatesUp(MBB, MBBI, StackPtr, &NumBytes);
 
   if (MFI->hasVarSizedObjects()) {
+    assert(false && "Variable sized objects not handled yet.");
+    /*
     BuildMI(MBB, MBBI, DL,
             TII.get(AVR::MOV16rr), AVR::SPW).addReg(AVR::FPW);
     if (CSSize) {
@@ -174,17 +170,20 @@ void AVRFrameLowering::emitEpilogue(MachineFunction &MF,
       // The SRW implicit def is dead.
       MI->getOperand(3).setIsDead();
     }
+    */
   } else {
     // adjust stack pointer back: SPW += numbytes
     if (NumBytes) {
+      /*
       MachineInstr *MI =
         BuildMI(MBB, MBBI, DL, TII.get(AVR::ADD16ri), AVR::SPW)
         .addReg(AVR::SPW).addImm(NumBytes);
       // The SRW implicit def is dead.
       MI->getOperand(3).setIsDead();
+     */
     }
+
   }
-  */
 }
 
 // FIXME: Can we eleminate these in favour of generic code?
@@ -193,7 +192,6 @@ AVRFrameLowering::spillCalleeSavedRegisters(MachineBasicBlock &MBB,
                                            MachineBasicBlock::iterator MI,
                                         const std::vector<CalleeSavedInfo> &CSI,
                                         const TargetRegisterInfo *TRI) const {
-/*
   if (CSI.empty())
     return false;
 
@@ -209,11 +207,10 @@ AVRFrameLowering::spillCalleeSavedRegisters(MachineBasicBlock &MBB,
     unsigned Reg = CSI[i-1].getReg();
     // Add the callee-saved register as live-in. It's killed at the spill.
     MBB.addLiveIn(Reg);
-    BuildMI(MBB, MI, DL, TII.get(AVR::PUSH16r))
+    BuildMI(MBB, MI, DL, TII.get(AVR::PUSH))
       .addReg(Reg, RegState::Kill);
   }
   return true;
-*/ return false;
 }
 
 bool
@@ -221,7 +218,6 @@ AVRFrameLowering::restoreCalleeSavedRegisters(MachineBasicBlock &MBB,
                                                  MachineBasicBlock::iterator MI,
                                         const std::vector<CalleeSavedInfo> &CSI,
                                         const TargetRegisterInfo *TRI) const {
-/*
   if (CSI.empty())
     return false;
 
@@ -232,9 +228,7 @@ AVRFrameLowering::restoreCalleeSavedRegisters(MachineBasicBlock &MBB,
   const TargetInstrInfo &TII = *MF.getTarget().getInstrInfo();
 
   for (unsigned i = 0, e = CSI.size(); i != e; ++i)
-    BuildMI(MBB, MI, DL, TII.get(AVR::POP16r), CSI[i].getReg());
+    BuildMI(MBB, MI, DL, TII.get(AVR::POP), CSI[i].getReg());
 
   return true;
-*/
-  return false;
 }

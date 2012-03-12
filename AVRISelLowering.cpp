@@ -65,14 +65,16 @@ AVRTargetLowering::AVRTargetLowering(AVRTargetMachine &tm) :
   setPrefFunctionAlignment(2);
 }
 
-/*
 SDValue AVRTargetLowering::LowerOperation(SDValue Op,
                                              SelectionDAG &DAG) const {
   switch (Op.getOpcode()) {
+  /*
   case ISD::SHL: // FALLTHROUGH
   case ISD::SRL:
   case ISD::SRA:              return LowerShifts(Op, DAG);
+  */
   case ISD::GlobalAddress:    return LowerGlobalAddress(Op, DAG);
+  /*
   case ISD::BlockAddress:     return LowerBlockAddress(Op, DAG);
   case ISD::ExternalSymbol:   return LowerExternalSymbol(Op, DAG);
   case ISD::SETCC:            return LowerSETCC(Op, DAG);
@@ -81,12 +83,16 @@ SDValue AVRTargetLowering::LowerOperation(SDValue Op,
   case ISD::SIGN_EXTEND:      return LowerSIGN_EXTEND(Op, DAG);
   case ISD::RETURNADDR:       return LowerRETURNADDR(Op, DAG);
   case ISD::FRAMEADDR:        return LowerFRAMEADDR(Op, DAG);
+  
   default:
     llvm_unreachable("unimplemented operand");
     return SDValue();
+   */
   }
+
 }
 
+/*
 //===----------------------------------------------------------------------===//
 //                       AVR Inline Assembly Support
 //===----------------------------------------------------------------------===//
@@ -521,6 +527,7 @@ SDValue AVRTargetLowering::LowerShifts(SDValue Op,
   return Victim;
 }
 
+*/
 SDValue AVRTargetLowering::LowerGlobalAddress(SDValue Op,
                                                  SelectionDAG &DAG) const {
   const GlobalValue *GV = cast<GlobalAddressSDNode>(Op)->getGlobal();
@@ -532,6 +539,8 @@ SDValue AVRTargetLowering::LowerGlobalAddress(SDValue Op,
   return DAG.getNode(AVRISD::Wrapper, Op.getDebugLoc(),
                      getPointerTy(), Result);
 }
+
+/*
 SDValue AVRTargetLowering::LowerExternalSymbol(SDValue Op,
                                                   SelectionDAG &DAG) const {
   DebugLoc dl = Op.getDebugLoc();

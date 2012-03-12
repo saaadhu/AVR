@@ -105,7 +105,7 @@ def and_su : PatFrag<(ops node:$lhs, node:$rhs), (and node:$lhs, node:$rhs), [{
   return N->hasOneUse();
 }]>;
 //===----------------------------------------------------------------------===//
-/*
+
 // Instruction list..
 
 // ADJCALLSTACKDOWN/UP implicitly use/def SP because they may be expanded into
@@ -113,7 +113,7 @@ def and_su : PatFrag<(ops node:$lhs, node:$rhs), (and node:$lhs, node:$rhs), [{
 // pointer before prolog-epilog rewriting occurs.
 // Pessimistically assume ADJCALLSTACKDOWN / ADJCALLSTACKUP will become
 // sub / add which can clobber SRW.
-let Defs = [SPW, SRW], Uses = [SPW] in {
+let Defs = [SPH, SPL], Uses = [SPH, SPL] in {
 def ADJCALLSTACKDOWN : Pseudo<(outs), (ins i16imm:$amt),
                               "#ADJCALLSTACKDOWN",
                               [(AVRcallseq_start timm:$amt)]>;
@@ -121,6 +121,8 @@ def ADJCALLSTACKUP   : Pseudo<(outs), (ins i16imm:$amt1, i16imm:$amt2),
                               "#ADJCALLSTACKUP",
                               [(AVRcallseq_end timm:$amt1, timm:$amt2)]>;
 }
+
+/*
 
 let usesCustomInserter = 1 in {
   def Select8  : Pseudo<(outs GR8:$dst), (ins GR8:$src, GR8:$src2, i8imm:$cc),
@@ -201,6 +203,7 @@ let Uses = [SRW] in
                    [(AVRbrcc bb:$dst, imm:$cc)]>;
 } // isBranch, isTerminator
 
+*/
 //===----------------------------------------------------------------------===//
 //  Call Instructions...
 //
@@ -209,20 +212,18 @@ let isCall = 1 in
   // a use to prevent stack-pointer assignments that appear immediately
   // before calls from potentially appearing dead. Uses for argument
   // registers are added manually.
-  let Defs = [R12W, R13W, R14W, R15W, SRW],
-      Uses = [SPW] in {
-    def CALLi     : II16i<0x0,
+  let Defs = [R18, R19, R20, R21, R22, R23, R24, R25, R26, R27, R30, R31],
+      Uses = [SPL, SPH] in {
+    def CALL     : II16i<0x0,
                           (outs), (ins i16imm:$dst, variable_ops),
                           "call\t$dst", [(AVRcall imm:$dst)]>;
-    def CALLr     : II16r<0x0,
+    /* TODO : Not yet implemented
+    def ICALL    : II16r<0x0,
                           (outs), (ins GR16:$dst, variable_ops),
-                          "call\t$dst", [(AVRcall GR16:$dst)]>;
-    def CALLm     : II16m<0x0,
-                          (outs), (ins memsrc:$dst, variable_ops),
-                          "call\t${dst:mem}", [(AVRcall (load addr:$dst))]>;
+                          "icall", [(AVRcall GR16:$dst)]>;
+    */
   }
 
-*/
 
 //  IO Instructions
 //
@@ -796,23 +797,26 @@ def XOR16mm : I16mm<0x0,
                      (implicit SRW)]>;
 }
 
+*/
 
 def SUB8rr  : I8rr<0x0,
                    (outs GR8:$dst), (ins GR8:$src, GR8:$src2),
-                   "sub.b\t{$src2, $dst}",
-                   [(set GR8:$dst, (sub GR8:$src, GR8:$src2)),
-                    (implicit SRW)]>;
+                   "sbc \t{$dst, $src2}",
+                   [(set GR8:$dst, (sub GR8:$src, GR8:$src2))
+                   ]>;
+/*
 def SUB16rr : I16rr<0x0,
                     (outs GR16:$dst), (ins GR16:$src, GR16:$src2),
                     "sub.w\t{$src2, $dst}",
                     [(set GR16:$dst, (sub GR16:$src, GR16:$src2)),
                      (implicit SRW)]>;
+*/
 
 def SUB8ri  : I8ri<0x0,
                    (outs GR8:$dst), (ins GR8:$src, i8imm:$src2),
-                   "sub.b\t{$src2, $dst}",
-                   [(set GR8:$dst, (sub GR8:$src, imm:$src2)),
-                    (implicit SRW)]>;
+                   "sbci \t{$dst, $src2}",
+                   [(set GR8:$dst, (sub GR8:$src, imm:$src2))]>;
+/*
 def SUB16ri : I16ri<0x0,
                     (outs GR16:$dst), (ins GR16:$src, i16imm:$src2),
                     "sub.w\t{$src2, $dst}",
@@ -1168,13 +1172,15 @@ def : Pat<(store (i16 (AVRWrapper texternalsym:$src)), addr:$dst),
           (MOV16mi addr:$dst, texternalsym:$src)>;
 def : Pat<(store (i16 (AVRWrapper tblockaddress:$src)), addr:$dst),
           (MOV16mi addr:$dst, tblockaddress:$src)>;
+*/
 
 // calls
 def : Pat<(AVRcall (i16 tglobaladdr:$dst)),
-          (CALLi tglobaladdr:$dst)>;
+          (CALL tglobaladdr:$dst)>;
 def : Pat<(AVRcall (i16 texternalsym:$dst)),
-          (CALLi texternalsym:$dst)>;
+          (CALL texternalsym:$dst)>;
 
+/*
 // add and sub always produce carry
 def : Pat<(addc GR16:$src, GR16:$src2),
           (ADD16rr GR16:$src, GR16:$src2)>;

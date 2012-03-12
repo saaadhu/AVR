@@ -44,10 +44,14 @@ AVRRegisterInfo::getCalleeSavedRegs(const MachineFunction *MF) const {
   static const unsigned CalleeSavedRegs[] = {
     AVR::R2, AVR::R3, AVR::R4, AVR::R5, AVR::R6,
     AVR::R7, AVR::R8, AVR::R9, AVR::R10, AVR::R11,
-    AVR::R12, AVR::R13, AVR::R14, AVR::R15, AVR::R16, AVR::R17, 0
+    AVR::R12, AVR::R13, AVR::R14, AVR::R15, AVR::R16, AVR::R17, 
+    0
   };
   static const unsigned CalleeSavedRegsFP[] = {
-    AVR::R28, AVR::R29, 0
+    AVR::R28, AVR::R29, AVR::R2, AVR::R3, AVR::R4, AVR::R5, AVR::R6,
+    AVR::R7, AVR::R8, AVR::R9, AVR::R10, AVR::R11,
+    AVR::R12, AVR::R13, AVR::R14, AVR::R15, AVR::R16, AVR::R17,
+    0
   };
   /*
   static const unsigned CalleeSavedRegsIntr[] = {
@@ -83,14 +87,9 @@ AVRRegisterInfo::getPointerRegClass(unsigned Kind) const {
 void AVRRegisterInfo::
 eliminateCallFramePseudoInstr(MachineFunction &MF, MachineBasicBlock &MBB,
                               MachineBasicBlock::iterator I) const {
-  /*
   const TargetFrameLowering *TFI = MF.getTarget().getFrameLowering();
 
   if (!TFI->hasReservedCallFrame(MF)) {
-    // If the stack pointer can be changed after prologue, turn the
-    // adjcallstackup instruction into a 'sub SPW, <amt>' and the
-    // adjcallstackdown instruction into 'add SPW, <amt>'
-    // TODO: consider using push / pop instead of sub + store / add
     MachineInstr *Old = I;
     uint64_t Amount = Old->getOperand(0).getImm();
     if (Amount != 0) {
@@ -101,26 +100,27 @@ eliminateCallFramePseudoInstr(MachineFunction &MF, MachineBasicBlock &MBB,
 
       MachineInstr *New = 0;
       if (Old->getOpcode() == TII.getCallFrameSetupOpcode()) {
-        New = BuildMI(MF, Old->getDebugLoc(),
-                      TII.get(AVR::SUB16ri), AVR::SPW)
-          .addReg(AVR::SPW).addImm(Amount);
+          for (int i = 0; i<Amount; ++i) {
+            New = BuildMI(MF, Old->getDebugLoc(),
+                        TII.get(AVR::PUSH), AVR::R0);
+            MBB.insert(I, New);
+          }
       } else {
         assert(Old->getOpcode() == TII.getCallFrameDestroyOpcode());
         // factor out the amount the callee already popped.
         uint64_t CalleeAmt = Old->getOperand(1).getImm();
         Amount -= CalleeAmt;
         if (Amount)
-          New = BuildMI(MF, Old->getDebugLoc(),
-                        TII.get(AVR::ADD16ri), AVR::SPW)
-            .addReg(AVR::SPW).addImm(Amount);
+          for (int i = 0; i<Amount; ++i) {
+            New = BuildMI(MF, Old->getDebugLoc(),
+                        TII.get(AVR::POP), AVR::R0);
+            MBB.insert(I, New);
+          }
       }
 
       if (New) {
         // The SRW implicit def is dead.
-        New->getOperand(3).setIsDead();
-
-        // Replace the pseudo instruction with a new instruction...
-        MBB.insert(I, New);
+        //New->getOperand(3).setIsDead();
       }
     }
   } else if (I->getOpcode() == TII.getCallFrameDestroyOpcode()) {
@@ -128,18 +128,18 @@ eliminateCallFramePseudoInstr(MachineFunction &MF, MachineBasicBlock &MBB,
     // something off the stack pointer, add it back.
     if (uint64_t CalleeAmt = I->getOperand(1).getImm()) {
       MachineInstr *Old = I;
-      MachineInstr *New =
-        BuildMI(MF, Old->getDebugLoc(), TII.get(AVR::SUB16ri),
-                AVR::SPW).addReg(AVR::SPW).addImm(CalleeAmt);
+      MachineInstr *New = 0;
+      for (int i = 0; i<CalleeAmt; ++i) {
+        New = BuildMI(MF, Old->getDebugLoc(),
+		      TII.get(AVR::PUSH), AVR::R0);
+	      MBB.insert(I, New);
+      }
       // The SRW implicit def is dead.
-      New->getOperand(3).setIsDead();
-
-      MBB.insert(I, New);
+      //New->getOperand(3).setIsDead();
     }
   }
 
   MBB.erase(I);
-  */
 }
 
 void

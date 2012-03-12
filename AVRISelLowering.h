@@ -75,14 +75,14 @@ namespace llvm {
     //virtual MVT getShiftAmountTy(EVT LHSTy) const { return MVT::i8; }
 
     /// LowerOperation - Provide custom lowering hooks for some operations.
-    //virtual SDValue LowerOperation(SDValue Op, SelectionDAG &DAG) const;
+    virtual SDValue LowerOperation(SDValue Op, SelectionDAG &DAG) const;
 
     /// getTargetNodeName - This method returns the name of a target specific
     /// DAG node.
     virtual const char *getTargetNodeName(unsigned Opcode) const;
 
-/*
     SDValue LowerShifts(SDValue Op, SelectionDAG &DAG) const;
+
     SDValue LowerGlobalAddress(SDValue Op, SelectionDAG &DAG) const;
     SDValue LowerBlockAddress(SDValue Op, SelectionDAG &DAG) const;
     SDValue LowerExternalSymbol(SDValue Op, SelectionDAG &DAG) const;
@@ -94,6 +94,7 @@ namespace llvm {
     SDValue LowerFRAMEADDR(SDValue Op, SelectionDAG &DAG) const;
     SDValue getReturnAddressFrameIndex(SelectionDAG &DAG) const;
 
+/*
     TargetLowering::ConstraintType
     getConstraintType(const std::string &Constraint) const;
     std::pair<unsigned, const TargetRegisterClass*>
