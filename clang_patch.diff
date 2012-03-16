@@ -1,0 +1,493 @@
+diff --git a/lib/Basic/Targets.cpp b/lib/Basic/Targets.cpp
+index 34258c1..87bb1ee 100644
+--- a/lib/Basic/Targets.cpp
++++ b/lib/Basic/Targets.cpp
+@@ -3219,6 +3219,81 @@ namespace {
+ }
+ 
+ namespace {
++  class AVRTargetInfo : public TargetInfo {
++    static const char * const GCCRegNames[];
++    std::string CPU;
++  public:
++    AVRTargetInfo(const std::string& triple) : TargetInfo(triple) {
++      BigEndian = false;
++      TLSSupported = false;
++      IntWidth = 16; IntAlign = 16;
++      LongWidth = 32; LongLongWidth = 64;
++      LongAlign = LongLongAlign = 16;
++      PointerWidth = 16; PointerAlign = 16;
++      SuitableAlign = 16;
++      SizeType = UnsignedInt;
++      IntMaxType = SignedLong;
++      UIntMaxType = UnsignedLong;
++      IntPtrType = SignedShort;
++      PtrDiffType = SignedInt;
++      SigAtomicType = SignedLong;
++      DescriptionString = "e-p:16:16:16-i8:8:8-i16:16:16-i32:16:32-n8:16";
++   }
++    virtual void getTargetDefines(const LangOptions &Opts,
++                                  MacroBuilder &Builder) const {
++      Builder.defineMacro("AVR");
++      Builder.defineMacro("__AVR__");
++      // FIXME: defines for different 'flavours' of MCU
++    }
++    virtual void getTargetBuiltins(const Builtin::Info *&Records,
++                                   unsigned &NumRecords) const {
++     // FIXME: Implement.
++      Records = 0;
++      NumRecords = 0;
++    }
++    virtual void getGCCRegNames(const char * const *&Names,
++                                unsigned &NumNames) const;
++    virtual void getGCCRegAliases(const GCCRegAlias *&Aliases,
++                                  unsigned &NumAliases) const {
++      // No aliases.
++      Aliases = 0;
++      NumAliases = 0;
++    }
++    virtual bool validateAsmConstraint(const char *&Name,
++                                       TargetInfo::ConstraintInfo &info) const {
++      // No target constraints for now.
++      return false;
++    }
++    virtual const char *getClobbers() const {
++      // FIXME: Is this really right?
++      return "";
++    }
++    virtual const char *getVAListDeclaration() const {
++      // FIXME: implement
++      return "typedef char* __builtin_va_list;";
++   }
++   
++    virtual bool setCPU(const std::string &Name)
++    {
++      CPU = Name;
++      return true;
++    }
++  };
++
++  const char * const AVRTargetInfo::GCCRegNames[] = {
++    "r0", "r1", "r2", "r3", "r4", "r5", "r6", "r7",
++    "r8", "r9", "r10", "r11", "r12", "r13", "r14", "r15",
++    "r16", "r17", "r18", "r19", "r20", "r21", "r22", "r23",
++    "r24", "r25", "r26", "r27", "r28", "r29", "r30", "r31", "r32"
++  };
++
++  void AVRTargetInfo::getGCCRegNames(const char * const *&Names,
++                                        unsigned &NumNames) const {
++    Names = GCCRegNames;
++    NumNames = llvm::array_lengthof(GCCRegNames);
++  }
++}
++namespace {
+ 
+   // LLVM and Clang cannot be used directly to output native binaries for
+   // target, but is used to compile C code to llvm bitcode with correct
+@@ -3714,6 +3789,9 @@ static TargetInfo *AllocateTarget(const std::string &T) {
+   case llvm::Triple::msp430:
+     return new MSP430TargetInfo(T);
+ 
++  case llvm::Triple::avr:
++     return new AVRTargetInfo(T);
++
+   case llvm::Triple::mips:
+     switch (os) {
+     case llvm::Triple::Linux:
+diff --git a/lib/CodeGen/TargetInfo.cpp b/lib/CodeGen/TargetInfo.cpp
+index 30dcaad..2f0b559 100644
+--- a/lib/CodeGen/TargetInfo.cpp
++++ b/lib/CodeGen/TargetInfo.cpp
+@@ -3031,6 +3031,17 @@ void MSP430TargetCodeGenInfo::SetTargetAttributes(const Decl *D,
+   }
+ }
+ 
++namespace {
++
++class AVRTargetCodeGenInfo : public TargetCodeGenInfo {
++public:
++  AVRTargetCodeGenInfo(CodeGenTypes &CGT)
++    : TargetCodeGenInfo(new DefaultABIInfo(CGT)) {}
++  void SetTargetAttributes(const Decl *D, llvm::GlobalValue *GV,
++                           CodeGen::CodeGenModule &M) const {}
++};
++
++}
+ //===----------------------------------------------------------------------===//
+ // MIPS ABI Implementation.  This works for both little-endian and
+ // big-endian variants.
+@@ -3506,6 +3517,9 @@ const TargetCodeGenInfo &CodeGenModule::getTargetCodeGenInfo() {
+   case llvm::Triple::msp430:
+     return *(TheTargetCodeGenInfo = new MSP430TargetCodeGenInfo(Types));
+ 
++  case llvm::Triple::avr:
++    return *(TheTargetCodeGenInfo = new AVRTargetCodeGenInfo(Types));
++
+   case llvm::Triple::tce:
+     return *(TheTargetCodeGenInfo = new TCETargetCodeGenInfo(Types));
+ 
+diff --git a/lib/Driver/HostInfo.cpp b/lib/Driver/HostInfo.cpp
+index 0e78792..08a2f7a 100644
+--- a/lib/Driver/HostInfo.cpp
++++ b/lib/Driver/HostInfo.cpp
+@@ -580,6 +580,11 @@ ToolChain *LinuxHostInfo::CreateToolChain(const ArgList &Args,
+     TC = new toolchains::Hexagon_TC (*this, TCTriple);
+   }
+ 
++  if (!TC && !Arch.compare ("avr")) {
++    llvm::Triple TCTriple (getTriple());
++    TC = new toolchains::AVR_TC (*this, TCTriple);
++  }
++
+   if (!TC) {
+     llvm::Triple TCTriple(getTriple());
+     TCTriple.setArchName(ArchName);
+diff --git a/lib/Driver/ToolChains.cpp b/lib/Driver/ToolChains.cpp
+index b53f2d3..e205f9f 100644
+--- a/lib/Driver/ToolChains.cpp
++++ b/lib/Driver/ToolChains.cpp
+@@ -1435,6 +1435,73 @@ const char *Hexagon_TC::GetForcedPicModel() const {
+ } // End Hexagon
+ 
+ 
++/// AVR Toolchain
++
++AVR_TC::AVR_TC(const HostInfo &Host, const llvm::Triple& Triple)
++  : ToolChain(Host, Triple) {
++  getProgramPaths().push_back(getDriver().getInstalledDir());
++  if (getDriver().getInstalledDir() != getDriver().Dir.c_str())
++    getProgramPaths().push_back(getDriver().Dir);
++}
++
++AVR_TC::~AVR_TC() {
++  // Free tool implementations.
++  for (llvm::DenseMap<unsigned, Tool*>::iterator
++         it = Tools.begin(), ie = Tools.end(); it != ie; ++it)
++    delete it->second;
++}
++
++Tool &AVR_TC::SelectTool(const Compilation &C,
++                             const JobAction &JA,
++                             const ActionList &Inputs) const {
++  Action::ActionClass Key;
++  //   if (JA.getKind () == Action::CompileJobClass)
++  //     Key = JA.getKind ();
++  //     else
++
++  if (getDriver().ShouldUseClangCompiler(C, JA, getTriple()))
++    Key = Action::AnalyzeJobClass;
++  else
++    Key = JA.getKind();
++  //   if ((JA.getKind () == Action::CompileJobClass)
++  //     && (JA.getType () != types::TY_LTO_BC)) {
++  //     Key = JA.getKind ();
++  //   }
++
++  Tool *&T = Tools[Key];
++  if (!T) {
++    switch (Key) {
++    case Action::InputClass:
++    case Action::BindArchClass:
++      assert(0 && "Invalid tool kind.");
++    case Action::AnalyzeJobClass:
++      T = new tools::Clang(*this); break;
++    case Action::AssembleJobClass:
++      T = new tools::avr::Assemble(*this); break;
++    case Action::LinkJobClass:
++      T = new tools::avr::Link(*this); break;
++    default:
++      assert(false && "Unsupported action for AVR target.");
++    }
++  }
++
++  return *T;
++}
++
++bool AVR_TC::IsUnwindTablesDefault() const {
++  // FIXME: Gross; we should probably have some separate target
++  // definition, possibly even reusing the one in clang.
++  return getArchName() == "x86_64";
++}
++
++const char *AVR_TC::GetDefaultRelocationModel() const {
++  return "static";
++}
++
++const char *AVR_TC::GetForcedPicModel() const {
++  return 0;
++} // End AVR
++
+ /// TCEToolChain - A tool chain using the llvm bitcode tools to perform
+ /// all subcommands. See http://tce.cs.tut.fi for our peculiar target.
+ /// Currently does not support anything else but compilation.
+diff --git a/lib/Driver/ToolChains.h b/lib/Driver/ToolChains.h
+index c0860c5..da3ea75 100644
+--- a/lib/Driver/ToolChains.h
++++ b/lib/Driver/ToolChains.h
+@@ -152,6 +152,21 @@ public:
+   virtual const char *GetForcedPicModel() const;
+ };
+ 
++class LLVM_LIBRARY_VISIBILITY AVR_TC : public ToolChain {
++protected:
++  mutable llvm::DenseMap<unsigned, Tool*> Tools;
++
++public:
++  AVR_TC(const HostInfo &Host, const llvm::Triple& Triple);
++  ~AVR_TC();
++
++  virtual Tool &SelectTool(const Compilation &C, const JobAction &JA,
++                           const ActionList &Inputs) const;
++
++  virtual bool IsUnwindTablesDefault() const;
++  virtual const char *GetDefaultRelocationModel() const;
++  virtual const char *GetForcedPicModel() const;
++};
+   /// Darwin - The base Darwin tool chain.
+ class LLVM_LIBRARY_VISIBILITY Darwin : public ToolChain {
+ public:
+diff --git a/lib/Driver/Tools.cpp b/lib/Driver/Tools.cpp
+index 883899d..6a3527b 100644
+--- a/lib/Driver/Tools.cpp
++++ b/lib/Driver/Tools.cpp
+@@ -961,6 +961,11 @@ static Arg* getLastHexagonArchArg (const ArgList &Args)
+   return A;
+ }
+ 
++static const char* getAVRTargetCPU(const ArgList &Args)
++{
++   return "atxmega128a1";
++}
++
+ static const char *getHexagonTargetCPU(const ArgList &Args)
+ {
+   Arg *A;
+@@ -2852,6 +2857,182 @@ void hexagon::Link::ConstructJob(Compilation &C, const JobAction &JA,
+     if (II.getType() == types::TY_LLVM_IR || II.getType() == types::TY_LTO_IR ||
+         II.getType() == types::TY_LLVM_BC || II.getType() == types::TY_LTO_BC)
+       D.Diag(clang::diag::err_drv_no_linker_llvm_support)
++        << getToolChain().getTripleString(); else if (II.getType() == types::TY_AST)
++      D.Diag(clang::diag::err_drv_no_ast_support)
++        << getToolChain().getTripleString();
++
++    if (II.isFilename())
++      CmdArgs.push_back(II.getFilename());
++    else
++      // Don't render as input, we need gcc to do the translations. FIXME: Pranav: What is this ?
++      II.getInputArg().render(Args, CmdArgs);
++  }
++  C.addCommand(new Command(JA, *this, Exec, CmdArgs));
++
++}
++// Hexagon tools end.
++// AVR tools start.
++void avr::Assemble::RenderExtraToolArgs(const JobAction &JA,
++                                        ArgStringList &CmdArgs) const {
++
++}
++void avr::Assemble::ConstructJob(Compilation &C, const JobAction &JA,
++                               const InputInfo &Output,
++                               const InputInfoList &Inputs,
++                               const ArgList &Args,
++                               const char *LinkingOutput) const {
++
++  const Driver &D = getToolChain().getDriver();
++  ArgStringList CmdArgs;
++
++  for (ArgList::const_iterator
++         it = Args.begin(), ie = Args.end(); it != ie; ++it) {
++    Arg *A = *it;
++    if (A->getOption().hasForwardToGCC()) {
++      // Don't forward any -g arguments to assembly steps.
++      if (isa<AssembleJobAction>(JA) &&
++          A->getOption().matches(options::OPT_g_Group))
++        continue;
++
++      // It is unfortunate that we have to claim here, as this means
++      // we will basically never report anything interesting for
++      // platforms using a generic gcc, even if we are just using gcc
++      // to get to the assembler.
++      A->claim();
++      A->render(Args, CmdArgs);
++    }
++  }
++
++  //std::string MCUString = "-mmcu=";
++  //MCUString += getAVRTargetCPU(Args);
++  //CmdArgs.push_back(Args.MakeArgString(MCUString));
++
++  RenderExtraToolArgs(JA, CmdArgs);
++
++  if (Output.isFilename()) {
++    CmdArgs.push_back("-o");
++    CmdArgs.push_back(Output.getFilename());
++  } else {
++    assert(Output.isNothing() && "Unexpected output");
++    CmdArgs.push_back("-fsyntax-only");
++  }
++
++
++  // Only pass -x if gcc will understand it; otherwise hope gcc
++  // understands the suffix correctly. The main use case this would go
++  // wrong in is for linker inputs if they happened to have an odd
++  // suffix; really the only way to get this to happen is a command
++  // like '-x foobar a.c' which will treat a.c like a linker input.
++  //
++  // FIXME: For the linker case specifically, can we safely convert
++  // inputs into '-Wl,' options?
++  for (InputInfoList::const_iterator
++         it = Inputs.begin(), ie = Inputs.end(); it != ie; ++it) {
++    const InputInfo &II = *it;
++
++    // Don't try to pass LLVM or AST inputs to a generic gcc.
++    if (II.getType() == types::TY_LLVM_IR || II.getType() == types::TY_LTO_IR ||
++        II.getType() == types::TY_LLVM_BC || II.getType() == types::TY_LTO_BC)
++      D.Diag(clang::diag::err_drv_no_linker_llvm_support)
++        << getToolChain().getTripleString();
++    else if (II.getType() == types::TY_AST)
++      D.Diag(clang::diag::err_drv_no_ast_support)
++        << getToolChain().getTripleString();
++
++    if (II.isFilename())
++      CmdArgs.push_back(II.getFilename());
++    else
++      // Don't render as input, we need gcc to do the translations. FIXME: Pranav: What is this ?
++      II.getInputArg().render(Args, CmdArgs);
++  }
++
++  const char *GCCName = "avr-as";
++  const char *Exec =
++    Args.MakeArgString(getToolChain().GetProgramPath(GCCName));
++  C.addCommand(new Command(JA, *this, Exec, CmdArgs));
++
++}
++void avr::Link::RenderExtraToolArgs(const JobAction &JA,
++                                    ArgStringList &CmdArgs) const {
++  // The types are (hopefully) good enough.
++}
++
++void avr::Link::ConstructJob(Compilation &C, const JobAction &JA,
++                               const InputInfo &Output,
++                               const InputInfoList &Inputs,
++                               const ArgList &Args,
++                               const char *LinkingOutput) const {
++
++  const Driver &D = getToolChain().getDriver();
++  ArgStringList CmdArgs;
++
++  for (ArgList::const_iterator
++         it = Args.begin(), ie = Args.end(); it != ie; ++it) {
++    Arg *A = *it;
++    if (A->getOption().hasForwardToGCC()) {
++      // Don't forward any -g arguments to assembly steps.
++      if (isa<AssembleJobAction>(JA) &&
++          A->getOption().matches(options::OPT_g_Group))
++        continue;
++
++      // It is unfortunate that we have to claim here, as this means
++      // we will basically never report anything interesting for
++      // platforms using a generic gcc, even if we are just using gcc
++      // to get to the assembler.
++      A->claim();
++      A->render(Args, CmdArgs);
++    }
++  }
++
++  RenderExtraToolArgs(JA, CmdArgs);
++
++  // Add Arch Information
++  /*
++  Arg *A;
++  if ((A = getLastHexagonArchArg (Args))) {
++    if ((A->getOption().matches(options::OPT_march_EQ)) ||
++        (A->getOption().matches(options::OPT_mcpu_EQ))) {
++    llvm::StringRef WhichHexagon = A->getValue(Args);
++    if (WhichHexagon == "v2")
++      CmdArgs.push_back("-mv2");
++    else if (WhichHexagon == "v3")
++      CmdArgs.push_back ("-mv3");
++    else if (WhichHexagon == "v4")
++      CmdArgs.push_back ("-mv4");
++    else
++      assert (0 && "Unknown -march or -mcpu value");
++    }
++    else {
++      if (A->getOption().matches(options::OPT_mv2) ||
++          A->getOption().matches(options::OPT_mv3) ||
++          A->getOption().matches(options::OPT_mv4))
++        A->render(Args, CmdArgs);
++      else
++        assert(0 && "Unknown -m argument.");
++    }
++
++  }
++  CmdArgs.push_back("-mqdsp6-compat");
++  */
++
++  const char *GCCName;
++  GCCName = "avr-ld";
++  const char *Exec =
++    Args.MakeArgString(getToolChain().GetProgramPath(GCCName));
++
++  if (Output.isFilename()) {
++    CmdArgs.push_back("-o");
++    CmdArgs.push_back(Output.getFilename());
++  }
++
++  for (InputInfoList::const_iterator
++         it = Inputs.begin(), ie = Inputs.end(); it != ie; ++it) {
++    const InputInfo &II = *it;
++
++    // Don't try to pass LLVM or AST inputs to a generic gcc.
++    if (II.getType() == types::TY_LLVM_IR || II.getType() == types::TY_LTO_IR ||
++        II.getType() == types::TY_LLVM_BC || II.getType() == types::TY_LTO_BC)
++      D.Diag(clang::diag::err_drv_no_linker_llvm_support)
+         << getToolChain().getTripleString();
+     else if (II.getType() == types::TY_AST)
+       D.Diag(clang::diag::err_drv_no_ast_support)
+diff --git a/lib/Driver/Tools.h b/lib/Driver/Tools.h
+index b304e96..da7c548 100644
+--- a/lib/Driver/Tools.h
++++ b/lib/Driver/Tools.h
+@@ -189,6 +189,41 @@ namespace hexagon {
+   };
+ } // end namespace hexagon.
+ 
++// avr assembler and linker
++
++namespace avr {
++  class LLVM_LIBRARY_VISIBILITY Assemble : public Tool {
++  public:
++    Assemble(const ToolChain &TC) : Tool("avr::Assemble",
++      "avr-as", TC) {}
++
++    virtual bool hasIntegratedCPP() const { return false; }
++
++    virtual void RenderExtraToolArgs(const JobAction &JA,
++                                     ArgStringList &CmdArgs) const;
++    virtual void ConstructJob(Compilation &C, const JobAction &JA,
++                              const InputInfo &Output,
++                              const InputInfoList &Inputs,
++                              const ArgList &TCArgs,
++                              const char *LinkingOutput) const;
++  };
++
++  class LLVM_LIBRARY_VISIBILITY Link : public Tool {
++  public:
++    Link(const ToolChain &TC) : Tool("avr::Link",
++      "avr-ld", TC) {}
++
++    virtual bool hasIntegratedCPP() const { return false; }
++
++    virtual void RenderExtraToolArgs(const JobAction &JA,
++                                     ArgStringList &CmdArgs) const;
++    virtual void ConstructJob(Compilation &C, const JobAction &JA,
++                              const InputInfo &Output,
++                              const InputInfoList &Inputs,
++                              const ArgList &TCArgs,
++                              const char *LinkingOutput) const;
++  };
++} // end namespace avr.
+ 
+ namespace darwin {
+   class LLVM_LIBRARY_VISIBILITY DarwinTool : public Tool {
