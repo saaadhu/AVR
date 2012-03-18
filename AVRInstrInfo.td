@@ -362,13 +362,13 @@ def ADD8rr  : I8rr<0x0,
                    ]>;
 }
 }
+
 /*
 def ADD16rr : I16rr<0x0,
                     (outs GR16:$dst), (ins GR16:$src, GR16:$src2),
                     "add.w\t{$src2, $dst}",
                     [(set GR16:$dst, (add GR16:$src, GR16:$src2)),
                      (implicit SRW)]>;
-}
 
 def ADD8rm  : I8rm<0x0,
                    (outs GR8:$dst), (ins GR8:$src, memsrc:$src2),
@@ -392,7 +392,6 @@ def ADD16rm_POST : IForm16<0x0, DstReg, SrcPostInc, Size2Bytes,
                            (ins GR16:$src, GR16:$base),
                           "add.w\t{@$base+, $dst}", []>;
 }
-
 
 def ADD8ri  : I8ri<0x0,
                    (outs GR8:$dst), (ins GR8:$src, i8imm:$src2),
@@ -799,11 +798,14 @@ def XOR16mm : I16mm<0x0,
 
 */
 
+
+let Constraints = "$src = $dst" in {
 def SUB8rr  : I8rr<0x0,
                    (outs GR8:$dst), (ins GR8:$src, GR8:$src2),
                    "sbc \t{$dst, $src2}",
                    [(set GR8:$dst, (sub GR8:$src, GR8:$src2))
                    ]>;
+
 /*
 def SUB16rr : I16rr<0x0,
                     (outs GR16:$dst), (ins GR16:$src, GR16:$src2),
@@ -816,6 +818,8 @@ def SUB8ri  : I8ri<0x0,
                    (outs GR8:$dst), (ins GR8:$src, i8imm:$src2),
                    "sbci \t{$dst, $src2}",
                    [(set GR8:$dst, (sub GR8:$src, imm:$src2))]>;
+}
+
 /*
 def SUB16ri : I16ri<0x0,
                     (outs GR16:$dst), (ins GR16:$src, i16imm:$src2),
@@ -833,6 +837,7 @@ def SUB16rm : I16rm<0x0,
                     "sub.w\t{$src2, $dst}",
                     [(set GR16:$dst, (sub GR16:$src, (load addr:$src2))),
                      (implicit SRW)]>;
+
 
 let mayLoad = 1, hasExtraDefRegAllocReq = 1, 
 Constraints = "$base = $base_wb, $src = $dst" in {

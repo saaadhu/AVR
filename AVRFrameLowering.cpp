@@ -61,7 +61,7 @@ void AVRFrameLowering::emitPrologue(MachineFunction &MF) const {
     // Get the offset of the stack slot for the EBP register... which is
     // guaranteed to be the last slot by processFunctionBeforeFrameFinalized.
     // Update the frame offset adjustment.
-    MFI->setOffsetAdjustment(-NumBytes);
+    MFI->setOffsetAdjustment((int64_t)-NumBytes);
 
     // Save FPW into the appropriate stack slot...
     BuildMI(MBB, MBBI, DL, TII.get(AVR::PUSH))
@@ -84,7 +84,7 @@ void AVRFrameLowering::emitPrologue(MachineFunction &MF) const {
     }
 
   } else
-    NumBytes = StackSize - AVRFI->getCalleeSavedFrameSize();
+   NumBytes = StackSize - AVRFI->getCalleeSavedFrameSize();
 
 
   // Skip the callee-saved push instructions.
@@ -94,17 +94,21 @@ void AVRFrameLowering::emitPrologue(MachineFunction &MF) const {
   if (MBBI != MBB.end())
     DL = MBBI->getDebugLoc();
 
-  /*
+  // Write IN R30, SPL
+  //       SBCI R30, NumBytes
+  //       OUT SPL, R30
+
   if (NumBytes) { // adjust stack pointer: SPW -= numbytes
-    if (NumBytes) {
       MachineInstr *MI =
-        BuildMI(MBB, MBBI, DL, TII.get(AVR::SUB8ri), AVR::SPL)
-        .addReg(AVR::SPL).addImm(NumBytes);
+        BuildMI(MBB, MBBI, DL, TII.get(AVR::IN), AVR::R30)
+        .addReg(AVR::SPL);
+        BuildMI(MBB, MBBI, DL, TII.get(AVR::SUB8ri), AVR::R30)
+        .addReg(AVR::R30).addImm(NumBytes);
+        BuildMI(MBB, MBBI, DL, TII.get(AVR::OUT), AVR::SPL)
+        .addReg(AVR::R30);
       // The SRW implicit def is dead.
       //MI->getOperand(3).setIsDead();
-    }
   }
-  */
 }
 
 void AVRFrameLowering::emitEpilogue(MachineFunction &MF,
@@ -172,8 +176,14 @@ void AVRFrameLowering::emitEpilogue(MachineFunction &MF,
     }
     */
   } else {
-    // adjust stack pointer back: SPW += numbytes
+    // adjust stack pointer back: SPW += numbytes by repeatedly doing POP r0
     if (NumBytes) {
+      for (uint64_t i = 0; i<NumBytes; ++i)
+      {
+      MachineInstr *MI =
+        BuildMI(MBB, MBBI, DL, TII.get(AVR::POP))
+        .addReg(AVR::R0);
+      }
       /*
       MachineInstr *MI =
         BuildMI(MBB, MBBI, DL, TII.get(AVR::ADD16ri), AVR::SPW)

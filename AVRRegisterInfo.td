@@ -60,8 +60,8 @@ def R30 : AVRReg<30, "r30">;
 def R31 : AVRReg<31, "r31">;
 
 def PC  : AVRReg<32, "pc">;
-def SPH : AVRReg<33, "0x3D">;
-def SPL : AVRReg<33, "0x3E">;
+def SPH : AVRReg<33, "0x3E">;
+def SPL : AVRReg<33, "0x3D">;
 
 def subreg_loreg : SubRegIndex { let Namespace = "AVR"; }
 def subreg_hireg : SubRegIndex { let Namespace = "AVR"; }
