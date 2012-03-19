@@ -188,8 +188,6 @@ bool AVRDAGToDAGISel::MatchAddressBase(SDValue N, AVRISelAddressMode &AM) {
 }
 
 bool AVRDAGToDAGISel::MatchAddress(SDValue N, AVRISelAddressMode &AM) {
-  return true;
-  /*
   DEBUG(errs() << "MatchAddress: "; AM.dump());
 
   switch (N.getOpcode()) {
@@ -248,7 +246,6 @@ bool AVRDAGToDAGISel::MatchAddress(SDValue N, AVRISelAddressMode &AM) {
   }
 
   return MatchAddressBase(N, AM);
-  */
 }
 
 /// SelectAddr - returns true if it is able pattern match an addressing mode.
@@ -256,7 +253,6 @@ bool AVRDAGToDAGISel::MatchAddress(SDValue N, AVRISelAddressMode &AM) {
 /// match by reference.
 bool AVRDAGToDAGISel::SelectAddr(SDValue N,
                                     SDValue &Base, SDValue &Disp) {
-  /*
   AVRISelAddressMode AM;
 
   if (MatchAddress(N, AM))
@@ -290,7 +286,6 @@ bool AVRDAGToDAGISel::SelectAddr(SDValue N,
     Disp = CurDAG->getTargetConstant(AM.Disp, MVT::i16);
 
   return true;
-  */
 }
 
 bool AVRDAGToDAGISel::
@@ -338,8 +333,6 @@ static bool isValidIndexedLoad(const LoadSDNode *LD) {
 }
 
 SDNode *AVRDAGToDAGISel::SelectIndexedLoad(SDNode *N) {
-  return NULL;
-  /*
   LoadSDNode *LD = cast<LoadSDNode>(N);
   if (!isValidIndexedLoad(LD))
     return NULL;
@@ -361,7 +354,6 @@ SDNode *AVRDAGToDAGISel::SelectIndexedLoad(SDNode *N) {
    return CurDAG->getMachineNode(Opcode, N->getDebugLoc(),
                                  VT, MVT::i16, MVT::Other,
                                  LD->getBasePtr(), LD->getChain());
-   */
 }
 
 SDNode *AVRDAGToDAGISel::SelectIndexedBinOp(SDNode *Op,

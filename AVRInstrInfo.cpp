@@ -28,7 +28,7 @@
 using namespace llvm;
 
 AVRInstrInfo::AVRInstrInfo(AVRTargetMachine &tm)
-  : AVRGenInstrInfo(),
+  : AVRGenInstrInfo(AVR::ADJCALLSTACKDOWN, AVR::ADJCALLSTACKUP),
     RI(tm, *this), TM(tm) {}
 
 void AVRInstrInfo::storeRegToStackSlot(MachineBasicBlock &MBB,
@@ -66,7 +66,6 @@ void AVRInstrInfo::loadRegFromStackSlot(MachineBasicBlock &MBB,
                                            unsigned DestReg, int FrameIdx,
                                            const TargetRegisterClass *RC,
                                            const TargetRegisterInfo *TRI) const{
-  /*
   DebugLoc DL;
   if (MI != MBB.end()) DL = MI->getDebugLoc();
   MachineFunction &MF = *MBB.getParent();
@@ -86,7 +85,6 @@ void AVRInstrInfo::loadRegFromStackSlot(MachineBasicBlock &MBB,
       .addReg(DestReg).addFrameIndex(FrameIdx).addImm(0).addMemOperand(MMO);
   else
     llvm_unreachable("Cannot store this register to stack slot!");
-  */
 }
 
 void AVRInstrInfo::copyPhysReg(MachineBasicBlock &MBB,

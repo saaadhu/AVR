@@ -73,6 +73,10 @@ void AVRInstPrinter::printSrcMemOperand(const MCInst *MI, unsigned OpNo,
   if (!Base.getReg())
     O << '&';
 
+  // Print register base field
+  if (Base.getReg())
+    O << getRegisterName(Base.getReg()) << '+';
+
   if (Disp.isExpr())
     O << *Disp.getExpr();
   else {
@@ -80,9 +84,6 @@ void AVRInstPrinter::printSrcMemOperand(const MCInst *MI, unsigned OpNo,
     O << Disp.getImm();
   }
 
-  // Print register base field
-  if (Base.getReg())
-    O << '(' << getRegisterName(Base.getReg()) << ')';
 }
 
 void AVRInstPrinter::printCCOperand(const MCInst *MI, unsigned OpNo,

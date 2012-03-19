@@ -273,17 +273,26 @@ def MOV8ri  : I8ri<0x0,
                    [(set GR8:$dst, imm:$src)]>;
 }
 
-/*
 let canFoldAsLoad = 1, isReMaterializable = 1 in {
 def MOV8rm  : I8rm<0x0,
                    (outs GR8:$dst), (ins memsrc:$src),
-                   "mov.b\t{$src, $dst}",
+                   "lds\t{$dst, $src}",
                    [(set GR8:$dst, (load addr:$src))]>;
 def MOV16rm : I16rm<0x0,
                     (outs GR16:$dst), (ins memsrc:$src),
-                    "mov.w\t{$src, $dst}",
+                    "lds\t{$dst, $src}",
                     [(set GR16:$dst, (load addr:$src))]>;
 }
+def MOV8rm_INDEX  : I8rm<0x0,
+                   (outs GR8:$dst), (ins memsrc:$src),
+                   "ldd\t{$dst, $src}",
+                   []>;
+def MOV16rm_INDEX : I16rm<0x0,
+                    (outs GR16:$dst), (ins memsrc:$src),
+                    "ldd\t{$dst, $src}",
+                    []>;
+
+/*
 
 def MOVZX16rr8 : I8rr<0x0,
                       (outs GR16:$dst), (ins GR8:$src),
@@ -293,17 +302,19 @@ def MOVZX16rm8 : I8rm<0x0,
                       (outs GR16:$dst), (ins memsrc:$src),
                       "mov.b\t{$src, $dst}",
                       [(set GR16:$dst, (zextloadi16i8 addr:$src))]>;
+*/
 
 let mayLoad = 1, hasExtraDefRegAllocReq = 1, Constraints = "$base = $base_wb" in {
 def MOV8rm_POST  : IForm8<0x0, DstReg, SrcPostInc, Size2Bytes,
                          (outs GR8:$dst, GR16:$base_wb), (ins GR16:$base),
-                         "mov.b\t{@$base+, $dst}", []>;
+                         "ld\t{$dst, @$base+}", []>;
 def MOV16rm_POST : IForm16<0x0, DstReg, SrcPostInc, Size2Bytes,
                            (outs GR16:$dst, GR16:$base_wb), (ins GR16:$base),
-                           "mov.w\t{@$base+, $dst}", []>;
+                           "ld\t{$dst, @$base+}", []>;
 }
 
-// Any instruction that defines a 8-bit result leaves the high half of the
+/*
+/// Any instruction that defines a 8-bit result leaves the high half of the
 // register. Truncate can be lowered to EXTRACT_SUBREG, and CopyFromReg may
 // be copying from a truncate, but any other 8-bit operation will zero-extend
 // up to 16 bits.

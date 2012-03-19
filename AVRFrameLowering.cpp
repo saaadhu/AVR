@@ -136,8 +136,10 @@ void AVRFrameLowering::emitEpilogue(MachineFunction &MF,
 
   if (hasFP(MF)) {
     // Calculate required stack adjustment
-    uint64_t FrameSize = StackSize - 2;
-    NumBytes = FrameSize - CSSize;
+    if (StackSize > 0) {
+      uint64_t FrameSize = StackSize - 2;
+      NumBytes = FrameSize - CSSize;
+    }
 
     // pop FPW.
     BuildMI(MBB, MBBI, DL, TII.get(AVR::POP), AVR::R29);

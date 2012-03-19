@@ -111,19 +111,10 @@ void AVRAsmPrinter::printSrcMemOperand(const MachineInstr *MI, int OpNum,
   const MachineOperand &Base = MI->getOperand(OpNum);
   const MachineOperand &Disp = MI->getOperand(OpNum+1);
 
-  // Print displacement first
-
-  // Imm here is in fact global address - print extra modifier.
-  if (Disp.isImm() && !Base.getReg())
-    O << '&';
+  printOperand(MI, OpNum, O);
+  O << '+';
   printOperand(MI, OpNum+1, O, "nohash");
 
-  // Print register base field
-  if (Base.getReg()) {
-    O << '(';
-    printOperand(MI, OpNum, O);
-    O << ')';
-  }
 }
 
 /// PrintAsmOperand - Print out an operand for an inline asm expression.

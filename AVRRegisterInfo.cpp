@@ -145,7 +145,6 @@ eliminateCallFramePseudoInstr(MachineFunction &MF, MachineBasicBlock &MBB,
 void
 AVRRegisterInfo::eliminateFrameIndex(MachineBasicBlock::iterator II,
                                         int SPAdj, RegScavenger *RS) const {
-  /*
   assert(SPAdj == 0 && "Unexpected");
 
   unsigned i = 0;
@@ -161,7 +160,7 @@ AVRRegisterInfo::eliminateFrameIndex(MachineBasicBlock::iterator II,
 
   int FrameIndex = MI.getOperand(i).getIndex();
 
-  unsigned BasePtr = (TFI->hasFP(MF) ? AVR::FPW : AVR::SPW);
+  unsigned BasePtr = (TFI->hasFP(MF) ? AVR::Y : AVR::SPL);
   int Offset = MF.getFrameInfo()->getObjectOffset(FrameIndex);
 
   // Skip the saved PC
@@ -175,6 +174,7 @@ AVRRegisterInfo::eliminateFrameIndex(MachineBasicBlock::iterator II,
   // Fold imm into offset
   Offset += MI.getOperand(i+1).getImm();
 
+  /*
   if (MI.getOpcode() == AVR::ADD16ri) {
     // This is actually "load effective address" of the stack slot
     // instruction. We have only two-address instructions, thus we need to
@@ -197,16 +197,16 @@ AVRRegisterInfo::eliminateFrameIndex(MachineBasicBlock::iterator II,
 
     return;
   }
+  */
 
+  MI.setDesc(TII.get(AVR::MOV8rm_INDEX));
   MI.getOperand(i).ChangeToRegister(BasePtr, false);
   MI.getOperand(i+1).ChangeToImmediate(Offset);
-  */
 }
 
 void
 AVRRegisterInfo::processFunctionBeforeFrameFinalized(MachineFunction &MF)
                                                                          const {
-  /*
   const TargetFrameLowering *TFI = MF.getTarget().getFrameLowering();
 
   // Create a frame entry for the FPW register that must be saved.
@@ -216,7 +216,6 @@ AVRRegisterInfo::processFunctionBeforeFrameFinalized(MachineFunction &MF)
     assert(FrameIdx == MF.getFrameInfo()->getObjectIndexBegin() &&
            "Slot for FPW register must be last in order to be found!");
   }
-  */
 }
 
 unsigned AVRRegisterInfo::getFrameRegister(const MachineFunction &MF) const {
