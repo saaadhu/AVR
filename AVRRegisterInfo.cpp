@@ -199,7 +199,7 @@ AVRRegisterInfo::eliminateFrameIndex(MachineBasicBlock::iterator II,
   }
   */
 
-  MI.setDesc(TII.get(AVR::MOV8rm_INDEX));
+  MI.setDesc(TII.get(TFI->hasFP(MF) ? AVR::MOV8rm_INDEX : AVR::MOV8rm));
   MI.getOperand(i).ChangeToRegister(BasePtr, false);
   MI.getOperand(i+1).ChangeToImmediate(Offset);
 }

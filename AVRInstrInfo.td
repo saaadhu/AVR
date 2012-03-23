@@ -285,11 +285,11 @@ def MOV16rm : I16rm<0x0,
 }
 def MOV8rm_INDEX  : I8rm<0x0,
                    (outs GR8:$dst), (ins memsrc:$src),
-                   "ldd\t{$dst, $src}",
+                   "ldsd\t{$dst, $src}",
                    []>;
 def MOV16rm_INDEX : I16rm<0x0,
                     (outs GR16:$dst), (ins memsrc:$src),
-                    "ldd\t{$dst, $src}",
+                    "lds\t{$dst, $src}",
                     []>;
 
 /*
@@ -307,13 +307,12 @@ def MOVZX16rm8 : I8rm<0x0,
 let mayLoad = 1, hasExtraDefRegAllocReq = 1, Constraints = "$base = $base_wb" in {
 def MOV8rm_POST  : IForm8<0x0, DstReg, SrcPostInc, Size2Bytes,
                          (outs GR8:$dst, GR16:$base_wb), (ins GR16:$base),
-                         "ld\t{$dst, @$base+}", []>;
+                         "ldd\t{$dst, @$base+}", []>;
 def MOV16rm_POST : IForm16<0x0, DstReg, SrcPostInc, Size2Bytes,
                            (outs GR16:$dst, GR16:$base_wb), (ins GR16:$base),
-                           "ld\t{$dst, @$base+}", []>;
+                           "ldd\t{$dst, @$base+}", []>;
 }
 
-/*
 /// Any instruction that defines a 8-bit result leaves the high half of the
 // register. Truncate can be lowered to EXTRACT_SUBREG, and CopyFromReg may
 // be copying from a truncate, but any other 8-bit operation will zero-extend
@@ -326,40 +325,29 @@ def def8 : PatLeaf<(i8 GR8:$src), [{
 
 // In the case of a 8-bit def that is known to implicitly zero-extend,
 // we can use a SUBREG_TO_REG.
-def : Pat<(i16 (zext def8:$src)),
-          (SUBREG_TO_REG (i16 0), GR8:$src, subreg_8bit)>;
+//def : Pat<(i16 (zext def8:$src)),
+//          (SUBREG_TO_REG (i16 0), GR8:$src, subreg_8bit)>;
 
-def MOV8mi  : I8mi<0x0,
-                   (outs), (ins memdst:$dst, i8imm:$src),
-                   "mov.b\t{$src, $dst}",
-                   [(store (i8 imm:$src), addr:$dst)]>;
-def MOV16mi : I16mi<0x0,
-                    (outs), (ins memdst:$dst, i16imm:$src),
-                    "mov.w\t{$src, $dst}",
-                    [(store (i16 imm:$src), addr:$dst)]>;
 
 def MOV8mr  : I8mr<0x0,
                    (outs), (ins memdst:$dst, GR8:$src),
-                   "mov.b\t{$src, $dst}",
+                   "sts\t{$dst, $src}",
                    [(store GR8:$src, addr:$dst)]>;
 def MOV16mr : I16mr<0x0,
                     (outs), (ins memdst:$dst, GR16:$src),
-                    "mov.w\t{$src, $dst}",
+                    "sts\t{$dst, $src}",
                     [(store GR16:$src, addr:$dst)]>;
 
-def MOV8mm  : I8mm<0x0,
-                   (outs), (ins memdst:$dst, memsrc:$src),
-                   "mov.b\t{$src, $dst}",
-                   [(store (i8 (load addr:$src)), addr:$dst)]>;
-def MOV16mm : I16mm<0x0,
-                    (outs), (ins memdst:$dst, memsrc:$src),
-                    "mov.w\t{$src, $dst}",
-                    [(store (i16 (load addr:$src)), addr:$dst)]>;
+def MOV8mr_POST  : IForm8<0x0, DstMem, SrcPostInc, Size2Bytes,
+                         (outs GR8:$dst, GR16:$base_wb), (ins GR16:$base),
+                         "std\t{$dst, @$base+}", []>;
+def MOV16mr_POST : IForm16<0x0, DstReg, SrcPostInc, Size2Bytes,
+                           (outs GR16:$dst, GR16:$base_wb), (ins GR16:$base),
+                           "std\t{$dst, @$base+}", []>;
 
 //===----------------------------------------------------------------------===//
 // Arithmetic Instructions
 
-*/
 let Constraints = "$src = $dst" in {
 
 //let Defs = [SRW] in {

@@ -58,6 +58,17 @@ AVRTargetLowering::AVRTargetLowering(AVRTargetMachine &tm) :
   // Division is expensive
   setIntDivIsCheap(false);
 
+  setIndexedLoadAction(ISD::POST_INC, MVT::i16, Legal);
+  setIndexedLoadAction(ISD::PRE_DEC, MVT::i16, Legal);
+
+  setLoadExtAction(ISD::EXTLOAD,  MVT::i1,  Promote);
+  setLoadExtAction(ISD::SEXTLOAD, MVT::i1,  Promote);
+  setLoadExtAction(ISD::ZEXTLOAD, MVT::i1,  Promote);
+  setLoadExtAction(ISD::SEXTLOAD, MVT::i8,  Expand);
+  setLoadExtAction(ISD::SEXTLOAD, MVT::i16, Expand);
+
+  setTruncStoreAction(MVT::i16, MVT::i8, Expand);
+
   setBooleanContents(ZeroOrOneBooleanContent);
   setBooleanVectorContents(ZeroOrOneBooleanContent); // FIXME: Is this correct?
 
@@ -82,12 +93,12 @@ SDValue AVRTargetLowering::LowerOperation(SDValue Op,
   case ISD::SELECT_CC:        return LowerSELECT_CC(Op, DAG);
   case ISD::SIGN_EXTEND:      return LowerSIGN_EXTEND(Op, DAG);
   case ISD::RETURNADDR:       return LowerRETURNADDR(Op, DAG);
+  */
   case ISD::FRAMEADDR:        return LowerFRAMEADDR(Op, DAG);
   
   default:
     llvm_unreachable("unimplemented operand");
     return SDValue();
-   */
   }
 
 }
@@ -805,6 +816,7 @@ SDValue AVRTargetLowering::LowerRETURNADDR(SDValue Op,
                      RetAddrFI, MachinePointerInfo(), false, false, false, 0);
 }
 
+*/
 SDValue AVRTargetLowering::LowerFRAMEADDR(SDValue Op,
                                              SelectionDAG &DAG) const {
   MachineFrameInfo *MFI = DAG.getMachineFunction().getFrameInfo();
@@ -814,7 +826,7 @@ SDValue AVRTargetLowering::LowerFRAMEADDR(SDValue Op,
   DebugLoc dl = Op.getDebugLoc();  // FIXME probably not meaningful
   unsigned Depth = cast<ConstantSDNode>(Op.getOperand(0))->getZExtValue();
   SDValue FrameAddr = DAG.getCopyFromReg(DAG.getEntryNode(), dl,
-                                         AVR::FPW, VT);
+                                         AVR::Y, VT);
   while (Depth--)
     FrameAddr = DAG.getLoad(VT, dl, DAG.getEntryNode(), FrameAddr,
                             MachinePointerInfo(),
@@ -822,6 +834,7 @@ SDValue AVRTargetLowering::LowerFRAMEADDR(SDValue Op,
   return FrameAddr;
 }
 
+/*
 /// getPostIndexedAddressParts - returns true by value, base pointer and
 /// offset pointer and addressing mode by reference if this node can be
 /// combined with a load / store to form a post-indexed load / store.
