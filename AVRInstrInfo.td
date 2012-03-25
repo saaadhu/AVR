@@ -268,9 +268,9 @@ def MOV16rr : I16rr<0x0,
 // FIXME: Provide proper encoding!
 let isReMaterializable = 1, isAsCheapAsAMove = 1 in {
 def MOV8ri  : I8ri<0x0,
-                   (outs GR8:$dst), (ins i8imm:$src),
+                   (outs IGR8:$dst), (ins i8imm:$src),
                    "ldi\t{$dst, $src}",
-                   [(set GR8:$dst, imm:$src)]>;
+                   [(set IGR8:$dst, imm:$src)]>;
 }
 
 let canFoldAsLoad = 1, isReMaterializable = 1 in {

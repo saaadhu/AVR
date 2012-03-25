@@ -67,7 +67,14 @@ AVRTargetLowering::AVRTargetLowering(AVRTargetMachine &tm) :
   setLoadExtAction(ISD::SEXTLOAD, MVT::i8,  Expand);
   setLoadExtAction(ISD::SEXTLOAD, MVT::i16, Expand);
 
+  setOperationAction(ISD::DYNAMIC_STACKALLOC, MVT::i8, Expand);
+  setOperationAction(ISD::DYNAMIC_STACKALLOC, MVT::i16, Expand);
+
   setTruncStoreAction(MVT::i16, MVT::i8, Expand);
+
+  setOperationAction(ISD::GlobalAddress,    MVT::i16,   Custom);
+  setOperationAction(ISD::ExternalSymbol,   MVT::i16,   Custom);
+  setOperationAction(ISD::BlockAddress,     MVT::i16,   Custom);
 
   setBooleanContents(ZeroOrOneBooleanContent);
   setBooleanVectorContents(ZeroOrOneBooleanContent); // FIXME: Is this correct?
