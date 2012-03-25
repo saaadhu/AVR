@@ -22,7 +22,7 @@ cd tools/clang
 # Patch clang
 patch -p1 < ../../lib/Target/AVR/clang_patch.diff
 
-
+cd ../../../
 #Download GNU binutils for AVR
 wget http://ftp.gnu.org/gnu/binutils/binutils-2.22.tar.bz2
 
