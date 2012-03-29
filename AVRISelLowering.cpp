@@ -73,8 +73,12 @@ AVRTargetLowering::AVRTargetLowering(AVRTargetMachine &tm) :
   setTruncStoreAction(MVT::i16, MVT::i8, Expand);
 
   setOperationAction(ISD::GlobalAddress,    MVT::i16,   Custom);
-  setOperationAction(ISD::ExternalSymbol,   MVT::i16,   Custom);
+  //setOperationAction(ISD::ExternalSymbol,   MVT::i16,   Custom);
   setOperationAction(ISD::BlockAddress,     MVT::i16,   Custom);
+
+  setOperationAction(ISD::BR_CC,            MVT::i8,    Custom);
+  setOperationAction(ISD::BR_CC,            MVT::i16,   Custom);
+  setOperationAction(ISD::BRCOND,           MVT::Other, Expand);
 
   setBooleanContents(ZeroOrOneBooleanContent);
   setBooleanVectorContents(ZeroOrOneBooleanContent); // FIXME: Is this correct?
@@ -92,11 +96,13 @@ SDValue AVRTargetLowering::LowerOperation(SDValue Op,
   case ISD::SRA:              return LowerShifts(Op, DAG);
   */
   case ISD::GlobalAddress:    return LowerGlobalAddress(Op, DAG);
-  /*
   case ISD::BlockAddress:     return LowerBlockAddress(Op, DAG);
+  /*
   case ISD::ExternalSymbol:   return LowerExternalSymbol(Op, DAG);
   case ISD::SETCC:            return LowerSETCC(Op, DAG);
+  */
   case ISD::BR_CC:            return LowerBR_CC(Op, DAG);
+  /*
   case ISD::SELECT_CC:        return LowerSELECT_CC(Op, DAG);
   case ISD::SIGN_EXTEND:      return LowerSIGN_EXTEND(Op, DAG);
   case ISD::RETURNADDR:       return LowerRETURNADDR(Op, DAG);
@@ -568,7 +574,16 @@ SDValue AVRTargetLowering::LowerExternalSymbol(SDValue Op,
   return DAG.getNode(AVRISD::Wrapper, dl, getPointerTy(), Result);;
 }
 
+*/
 
+SDValue AVRTargetLowering::LowerBlockAddress(SDValue Op,
+                                                SelectionDAG &DAG) const {
+  DebugLoc dl = Op.getDebugLoc();
+  const BlockAddress *BA = cast<BlockAddressSDNode>(Op)->getBlockAddress();
+  SDValue Result = DAG.getBlockAddress(BA, getPointerTy(), /*isTarget=*/true);
+
+  return DAG.getNode(AVRISD::Wrapper, dl, getPointerTy(), Result);;
+}
 static SDValue EmitCMP(SDValue &LHS, SDValue &RHS, SDValue &TargetCC,
                        ISD::CondCode CC,
                        DebugLoc dl, SelectionDAG &DAG) {
@@ -667,6 +682,7 @@ SDValue AVRTargetLowering::LowerBR_CC(SDValue Op, SelectionDAG &DAG) const {
                      Chain, Dest, TargetCC, Flag);
 }
 
+/*
 SDValue AVRTargetLowering::LowerSETCC(SDValue Op, SelectionDAG &DAG) const {
   SDValue LHS   = Op.getOperand(0);
   SDValue RHS   = Op.getOperand(1);

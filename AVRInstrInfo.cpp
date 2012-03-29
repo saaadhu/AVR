@@ -183,7 +183,6 @@ bool AVRInstrInfo::AnalyzeBranch(MachineBasicBlock &MBB,
                                     MachineBasicBlock *&FBB,
                                     SmallVectorImpl<MachineOperand> &Cond,
                                     bool AllowModify) const {
-  /*
   // Start from the bottom of the block and work up, examining the
   // terminator instructions.
   MachineBasicBlock::iterator I = MBB.end();
@@ -200,11 +199,6 @@ bool AVRInstrInfo::AnalyzeBranch(MachineBasicBlock &MBB,
     // A terminator that isn't a branch can't easily be handled
     // by this analysis.
     if (!I->isBranch())
-      return true;
-
-    // Cannot handle indirect branches.
-    if (I->getOpcode() == AVR::Br ||
-        I->getOpcode() == AVR::Bm)
       return true;
 
     // Handle unconditional branches.
@@ -265,7 +259,6 @@ bool AVRInstrInfo::AnalyzeBranch(MachineBasicBlock &MBB,
 
     return true;
   }
-  */
 
   return false;
 }
@@ -275,8 +268,6 @@ AVRInstrInfo::InsertBranch(MachineBasicBlock &MBB, MachineBasicBlock *TBB,
                               MachineBasicBlock *FBB,
                               const SmallVectorImpl<MachineOperand> &Cond,
                               DebugLoc DL) const {
-  return 0;
-  /*
   // Shouldn't be a fall through.
   assert(TBB && "InsertBranch must not be told to insert a fallthrough");
   assert((Cond.size() == 1 || Cond.size() == 0) &&
@@ -300,7 +291,6 @@ AVRInstrInfo::InsertBranch(MachineBasicBlock &MBB, MachineBasicBlock *TBB,
     ++Count;
   }
   return Count;
-  */
 }
 
 /// GetInstSize - Return the number of bytes of code the specified

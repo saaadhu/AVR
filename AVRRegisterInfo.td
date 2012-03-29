@@ -61,7 +61,9 @@ def R31 : AVRReg<31, "r31">;
 
 def PC  : AVRReg<32, "pc">;
 def SPH : AVRReg<33, "0x3E">;
-def SPL : AVRReg<33, "0x3D">;
+def SPL : AVRReg<34, "0x3D">;
+
+def SREG : AVRReg<35, "sreg">;
 
 def subreg_loreg : SubRegIndex { let Namespace = "AVR"; }
 def subreg_hireg : SubRegIndex { let Namespace = "AVR"; }
@@ -83,6 +85,9 @@ def IGR8 : RegisterClass<"AVR", [i8], 8,
 
 def IO8 : RegisterClass<"AVR", [i8], 8,
   (add SPH, SPL)>;
+
+def SREG8 : RegisterClass<"AVR", [i8], 8,
+  (add SREG)>;
 
 def GR16 : RegisterClass<"AVR", [i16], 16,
    (add PC, X, Y, Z, R25W)>

@@ -156,9 +156,10 @@ let usesCustomInserter = 1 in {
   }
 }
 
+*/
+
 let neverHasSideEffects = 1 in
 def NOP : Pseudo<(outs), (ins), "nop", []>;
-*/
 //===----------------------------------------------------------------------===//
 //  Control Flow Instructions...
 //
@@ -170,7 +171,6 @@ let isReturn = 1, isTerminator = 1, isBarrier = 1 in {
   def RETI : II16r<0x0, (outs), (ins), "reti", [(AVRretiflag)]>;
 }
 
-/*
 let isBranch = 1, isTerminator = 1 in {
 
 // FIXME: expand opcode & cond field for branches!
@@ -181,6 +181,7 @@ let isBarrier = 1 in {
   def JMP : CJForm<0, 0, (outs), (ins jmptarget:$dst),
                    "jmp\t$dst",
                    [(br bb:$dst)]>;
+  /*
   let isIndirectBranch = 1 in {
     // Long branches
     def Bi  : I16ri<0, (outs), (ins i16imm:$brdst),
@@ -193,17 +194,18 @@ let isBarrier = 1 in {
                     "mov.w\t{$brdst, pc}",
                     [(brind (load addr:$brdst))]>;
   }
+  */
 }
 
 // Conditional branches
-let Uses = [SRW] in
+
+let Uses = [SREG] in 
   def JCC : CJForm<0, 0,
                    (outs), (ins jmptarget:$dst, cc:$cc),
-                   "j$cc\t$dst",
+                   "br$cc\t$dst",
                    [(AVRbrcc bb:$dst, imm:$cc)]>;
 } // isBranch, isTerminator
 
-*/
 //===----------------------------------------------------------------------===//
 //  Call Instructions...
 //
@@ -1016,26 +1018,20 @@ def SWPB16r : II16r<0x0,
 
 } // Constraints = "$src = $dst"
 
+*/
 // Integer comparisons
-let Defs = [SRW] in {
+let Defs = [SREG] in {
 def CMP8rr  : I8rr<0x0,
                    (outs), (ins GR8:$src, GR8:$src2),
-                   "cmp.b\t{$src2, $src}",
-                   [(AVRcmp GR8:$src, GR8:$src2), (implicit SRW)]>;
-def CMP16rr : I16rr<0x0,
-                    (outs), (ins GR16:$src, GR16:$src2),
-                    "cmp.w\t{$src2, $src}",
-                    [(AVRcmp GR16:$src, GR16:$src2), (implicit SRW)]>;
+                   "cp\t{$src, $src2}",
+                   [(AVRcmp GR8:$src, GR8:$src2), (implicit SREG)]>;
 
 def CMP8ri  : I8ri<0x0,
                    (outs), (ins GR8:$src, i8imm:$src2),
-                   "cmp.b\t{$src2, $src}",
-                   [(AVRcmp GR8:$src, imm:$src2), (implicit SRW)]>;
-def CMP16ri : I16ri<0x0,
-                    (outs), (ins GR16:$src, i16imm:$src2),
-                    "cmp.w\t{$src2, $src}",
-                    [(AVRcmp GR16:$src, imm:$src2), (implicit SRW)]>;
-
+                   "cpi\t{$src, $src2}",
+                   [(AVRcmp GR8:$src, imm:$src2), (implicit SREG)]>;
+}
+/*
 def CMP8mi  : I8mi<0x0,
                    (outs), (ins memsrc:$src, i8imm:$src2),
                    "cmp.b\t{$src2, $src}",

@@ -21,10 +21,10 @@
 namespace AVRCC {
   // AVR specific condition code.
   enum CondCodes {
-    COND_E  = 0,  // aka COND_Z
-    COND_NE = 1,  // aka COND_NZ
-    COND_HS = 2,  // aka COND_C
-    COND_LO = 3,  // aka COND_NC
+    COND_E  = 0,  
+    COND_NE = 1,  
+    COND_HS = 2,  
+    COND_LO = 3,  
     COND_GE = 4,
     COND_L  = 5,
 
