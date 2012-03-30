@@ -47,8 +47,10 @@ AVRTargetLowering::AVRTargetLowering(AVRTargetMachine &tm) :
 
   // Set up the register classes.
   addRegisterClass(MVT::i8,  AVR::GR8RegisterClass);
+  addRegisterClass(MVT::i8,  AVR::IGR8RegisterClass);
   addRegisterClass(MVT::i8,  AVR::IO8RegisterClass);
   addRegisterClass(MVT::i16, AVR::GR16RegisterClass);
+  addRegisterClass(MVT::i16, AVR::IGR16RegisterClass);
 
   // Compute derived properties from the register classes
   computeRegisterProperties();

@@ -72,7 +72,12 @@ let SubRegIndices = [subreg_hireg, subreg_loreg] in {
 def X	: AVRRegWithSubregs<0, "x", [R27, R26]>;
 def Y	: AVRRegWithSubregs<1, "y", [R29, R28]>;
 def Z	: AVRRegWithSubregs<2, "z", [R31, R30]>;
-def R25W: AVRRegWithSubregs<3, "r25w", [R25, R24]>;
+def R25W: AVRRegWithSubregs<3, "r25:r24", [R25, R24]>;
+def R23W: AVRRegWithSubregs<4, "r23:r22", [R23, R22]>;
+def R21W: AVRRegWithSubregs<5, "r21:r20", [R21, R20]>;
+def R19W: AVRRegWithSubregs<6, "r19:r18", [R19, R18]>;
+def R17W: AVRRegWithSubregs<7, "r17:r16", [R17, R16]>;
+def R1W:  AVRRegWithSubregs<8, "r1:r0", [R1, R0]>;
 }
 
 
@@ -83,6 +88,9 @@ def GR8 : RegisterClass<"AVR", [i8], 8,
 def IGR8 : RegisterClass<"AVR", [i8], 8,
   (add R16, R17, R18, R19, R20, R21, R22, R23, R24, R25, R26, R27, R28, R29, R30, R31)>;
 
+def IGR16 : RegisterClass<"AVR", [i16], 16,
+  (add R25W, R23W, R21W, R19W, R17W)>;
+
 def IO8 : RegisterClass<"AVR", [i8], 8,
   (add SPH, SPL)>;
 
@@ -90,8 +98,15 @@ def SREG8 : RegisterClass<"AVR", [i8], 8,
   (add SREG)>;
 
 def GR16 : RegisterClass<"AVR", [i16], 16,
-   (add PC, X, Y, Z, R25W)>
+   (add PC, X, Y, Z, R1W, R25W)>
 {
+  let SubRegClasses = [(GR8 subreg_hireg, subreg_loreg)];
+}
+
+def AR16 : RegisterClass<"AVR", [i16], 16,
+   (add R1W)>
+{
+
   let SubRegClasses = [(GR8 subreg_hireg, subreg_loreg)];
 }
 

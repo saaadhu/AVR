@@ -85,8 +85,8 @@ void AVRAsmPrinter::printOperand(const MachineInstr *MI, int OpNum,
     // vs
     //   mov.w glb(r1), r2
     // Otherwise (!) AVR-as will silently miscompile the output :(
-    if (!Modifier || strcmp(Modifier, "nohash"))
-      O << (isMemOp ? '&' : '#');
+    //if (!Modifier || strcmp(Modifier, "nohash"))
+    //  O << (isMemOp ? '&' : '#');
     if (Offset)
       O << '(' << Offset << '+';
 
@@ -99,7 +99,7 @@ void AVRAsmPrinter::printOperand(const MachineInstr *MI, int OpNum,
   }
   case MachineOperand::MO_ExternalSymbol: {
     bool isMemOp  = Modifier && !strcmp(Modifier, "mem");
-    O << (isMemOp ? '&' : '#');
+    //O << (isMemOp ? '&' : '#');
     O << MAI->getGlobalPrefix() << MO.getSymbolName();
     return;
   }

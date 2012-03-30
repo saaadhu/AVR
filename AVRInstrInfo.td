@@ -273,6 +273,7 @@ def MOV8ri  : I8ri<0x0,
                    (outs IGR8:$dst), (ins i8imm:$src),
                    "ldi\t{$dst, $src}",
                    [(set IGR8:$dst, imm:$src)]>;
+
 }
 
 let canFoldAsLoad = 1, isReMaterializable = 1 in {
@@ -352,7 +353,7 @@ def MOV16mr_POST : IForm16<0x0, DstReg, SrcPostInc, Size2Bytes,
 
 let Constraints = "$src = $dst" in {
 
-//let Defs = [SRW] in {
+let Defs = [SREG] in {
 
 let isCommutable = 1 in { // X = ADD Y, Z  == X = ADD Z, Y
 
@@ -361,6 +362,7 @@ def ADD8rr  : I8rr<0x0,
                    "add \t{$dst, $src2}",
                    [(set GR8:$dst, (add GR8:$src, GR8:$src2))
                    ]>;
+}
 }
 }
 
@@ -441,15 +443,26 @@ def ADD16mm : I16mm<0x0,
                                   (i16 (load addr:$src))), addr:$dst),
                      (implicit SRW)]>;
 }
+*/
 
-let Uses = [SRW] in {
+let Uses = [SREG] in {
 
 let isCommutable = 1 in { // X = ADDC Y, Z  == X = ADDC Z, Y
 def ADC8rr  : I8rr<0x0,
                    (outs GR8:$dst), (ins GR8:$src, GR8:$src2),
-                   "addc.b\t{$src2, $dst}",
+                   "adc\t{$dst, $src2}",
                    [(set GR8:$dst, (adde GR8:$src, GR8:$src2)),
-                    (implicit SRW)]>;
+                    (implicit SREG)]>;
+
+
+}
+}
+
+/*
+def MUL8rr : I16rr<0x0,
+                  (outs AR16:$dst), (ins GR8:$src, GR8:$src2),
+				  "mul\t{$src, $src2}",
+				  [(set AR16:$dst, (mul GR8:$src, GR8:$src2))]>;
 def ADC16rr : I16rr<0x0,
                     (outs GR16:$dst), (ins GR16:$src, GR16:$src2),
                     "addc.w\t{$src2, $dst}",
@@ -1180,7 +1193,21 @@ def : Pat<(AVRcall (i16 tglobaladdr:$dst)),
 def : Pat<(AVRcall (i16 texternalsym:$dst)),
           (CALL texternalsym:$dst)>;
 
+
 /*
+def LO16 : SDNodeXForm<imm, [{
+  return CurDAG->getTargetConstant((unsigned char)N->getZExtValue());
+}]>;
+
+def HI16 : SDNodeXForm<imm, [{
+  return CurDAG->getTargetConstant((unsigned char)(N->getZExtValue() >> 8));
+}]>;
+
+def : Pat<(load IGR16:$dst, i16imm:$imm),
+          (i16 (MOV8ri (EXTRACT_SUBREG IGR16:$dst, subreg_loreg), (LO16 imm:$imm)),
+		  (MOV8ri (EXTRACT_SUBREG IGR16:$dst, subreg_hireg), (HI16 imm:$imm)))
+		  >;
+
 // add and sub always produce carry
 def : Pat<(addc GR16:$src, GR16:$src2),
           (ADD16rr GR16:$src, GR16:$src2)>;

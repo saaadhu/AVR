@@ -70,8 +70,8 @@ void AVRInstPrinter::printSrcMemOperand(const MCInst *MI, unsigned OpNo,
   // vs
   //   mov.w glb(r1), r2
   // Otherwise (!) AVR-as will silently miscompile the output :(
-  if (!Base.getReg())
-    O << '&';
+  //if (!Base.getReg())
+  //  O << '&';
 
   // Print register base field
   if (Base.getReg())
