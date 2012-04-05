@@ -197,9 +197,27 @@ AVRRegisterInfo::eliminateFrameIndex(MachineBasicBlock::iterator II,
 
     return;
   }
+  if (MI.getOpcode() == AVR::MOV8mr) {
+      if (TFI->hasFP(MF)) {
+        MI.setDesc(TII.get(AVR::MOV8mr_POST));
+      }
+      else {
+        BuildMI(MBB, llvm::next(II), dl, TII.get(AVR  
+
+      }
+
+  }
   */
 
   //MI.setDesc(TII.get(TFI->hasFP(MF) ? AVR::MOV8rm_INDEX : AVR::MOV8rm));
+  if (MI.getOpcode() == AVR::MOV8mr) {
+    if (TFI->hasFP(MF)) {
+      MI.setDesc(TII.get(AVR::MOV8mr_INDEX));
+    }
+    else {
+      assert(false && "Frame index read/write with FP elimination is not yet implemented");
+    }
+  }
   MI.getOperand(i).ChangeToRegister(BasePtr, false);
   MI.getOperand(i+1).ChangeToImmediate(Offset);
 }

@@ -55,7 +55,7 @@ void AVRFrameLowering::emitPrologue(MachineFunction &MF) const {
   uint64_t NumBytes = 0;
   if (hasFP(MF)) {
     // Calculate required stack adjustment
-    uint64_t FrameSize = StackSize - 2;
+    uint64_t FrameSize = StackSize;
     NumBytes = FrameSize - AVRFI->getCalleeSavedFrameSize();
 
     // Get the offset of the stack slot for the EBP register... which is
@@ -137,8 +137,8 @@ void AVRFrameLowering::emitEpilogue(MachineFunction &MF,
   if (hasFP(MF)) {
     // Calculate required stack adjustment
     if (StackSize > 0) {
-      uint64_t FrameSize = StackSize - 2;
-      NumBytes = FrameSize - CSSize;
+      //uint64_t FrameSize = StackSize - 2;
+      //NumBytes = FrameSize - CSSize;
     }
 
     // pop FPW.

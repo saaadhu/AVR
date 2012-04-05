@@ -288,7 +288,7 @@ def MOV16rm : I16rm<0x0,
 }
 def MOV8rm_INDEX  : I8rm<0x0,
                    (outs GR8:$dst), (ins memsrc:$src),
-                   "ldsd\t{$dst, $src}",
+                   "ldd\t{$dst, $src}",
                    []>;
 def MOV16rm_INDEX : I16rm<0x0,
                     (outs GR16:$dst), (ins memsrc:$src),
@@ -341,6 +341,16 @@ def MOV16mr : I16mr<0x0,
                     "sts\t{$dst, $src}",
                     [(store GR16:$src, addr:$dst)]>;
 
+def MOV8imr : I8mr<0x0,
+                   (outs), (ins INDR16:$dst, GR8:$src),
+                   "st\t{$dst, $src}",
+                   [(store GR8:$src, addr:$dst)]>;
+
+def MOV8mr_INDEX : I8mr<0x0,
+                   (outs), (ins memsrc:$dst, GR8:$src),
+                   "std\t{$dst, $src}",
+                   []>;
+
 def MOV8mr_POST  : IForm8<0x0, DstMem, SrcPostInc, Size2Bytes,
                          (outs GR8:$dst, GR16:$base_wb), (ins GR16:$base),
                          "std\t{$dst, @$base+}", []>;
@@ -362,6 +372,14 @@ def ADD8rr  : I8rr<0x0,
                    "add \t{$dst, $src2}",
                    [(set GR8:$dst, (add GR8:$src, GR8:$src2))
                    ]>;
+
+/*
+def ADD16ri : I16ri<0x0,
+                   (outs IWR16:$dst), (ins IWR16:$src, i16imm:$src2),
+                   "adiw\t{$dst, $src2}",
+                   [(set IWR16:$dst, (add IWR16:$src, imm:$src2))
+                   ]>;
+*/
 }
 }
 }

@@ -103,6 +103,19 @@ def GR16 : RegisterClass<"AVR", [i16], 16,
   let SubRegClasses = [(GR8 subreg_hireg, subreg_loreg)];
 }
 
+def INDR16 : RegisterClass<"AVR", [i16], 16,
+   (add X, Y, Z)>
+{
+  let SubRegClasses = [(GR8 subreg_hireg, subreg_loreg)];
+}
+
+// Class for registers that can work with ADIW and SBIW
+def IWR16 : RegisterClass<"AVR", [i16], 16,
+   (add X, Y, Z)>
+{
+  let SubRegClasses = [(GR8 subreg_hireg, subreg_loreg)];
+}
+
 def AR16 : RegisterClass<"AVR", [i16], 16,
    (add R1W)>
 {
