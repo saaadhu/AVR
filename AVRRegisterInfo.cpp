@@ -218,6 +218,15 @@ AVRRegisterInfo::eliminateFrameIndex(MachineBasicBlock::iterator II,
       assert(false && "Frame index read/write with FP elimination is not yet implemented");
     }
   }
+  else if (MI.getOpcode() == AVR::MOV8rm) {
+    if (TFI->hasFP(MF)) {
+      MI.setDesc(TII.get(AVR::MOV8rm_INDEX));
+    }
+    else {
+      assert(false && "Frame index read/write with FP elimination is not yet implemented");
+    }
+  }
+
   MI.getOperand(i).ChangeToRegister(BasePtr, false);
   MI.getOperand(i+1).ChangeToImmediate(Offset);
 }
