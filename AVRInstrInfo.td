@@ -838,18 +838,15 @@ def SUB8rr  : I8rr<0x0,
                    [(set GR8:$dst, (sub GR8:$src, GR8:$src2))
                    ]>;
 
-/*
-def SUB16rr : I16rr<0x0,
-                    (outs GR16:$dst), (ins GR16:$src, GR16:$src2),
-                    "sub.w\t{$src2, $dst}",
-                    [(set GR16:$dst, (sub GR16:$src, GR16:$src2)),
-                     (implicit SRW)]>;
-*/
-
 def SUB8ri  : I8ri<0x0,
                    (outs GR8:$dst), (ins GR8:$src, i8imm:$src2),
                    "sbci \t{$dst, $src2}",
                    [(set GR8:$dst, (sub GR8:$src, imm:$src2))]>;
+
+def SUB8wri  : I8ri<0x0,
+                   (outs IGR8:$dst), (ins IGR8:$src, i8imm:$src2),
+                   "sbiw \t{$dst, $src2}",
+                   []>;
 }
 
 /*

@@ -102,10 +102,14 @@ void AVRFrameLowering::emitPrologue(MachineFunction &MF) const {
       MachineInstr *MI =
         BuildMI(MBB, MBBI, DL, TII.get(AVR::IN), AVR::R30)
         .addReg(AVR::SPL);
-        BuildMI(MBB, MBBI, DL, TII.get(AVR::SUB8ri), AVR::R30)
+        BuildMI(MBB, MBBI, DL, TII.get(AVR::IN), AVR::R31)
+        .addReg(AVR::SPH);
+        BuildMI(MBB, MBBI, DL, TII.get(AVR::SUB8wri), AVR::R30)
         .addReg(AVR::R30).addImm(NumBytes);
         BuildMI(MBB, MBBI, DL, TII.get(AVR::OUT), AVR::SPL)
         .addReg(AVR::R30);
+        BuildMI(MBB, MBBI, DL, TII.get(AVR::OUT), AVR::SPH)
+        .addReg(AVR::R31);
       // The SRW implicit def is dead.
       //MI->getOperand(3).setIsDead();
   }
@@ -136,10 +140,8 @@ void AVRFrameLowering::emitEpilogue(MachineFunction &MF,
 
   if (hasFP(MF)) {
     // Calculate required stack adjustment
-    if (StackSize > 0) {
-      //uint64_t FrameSize = StackSize - 2;
-      //NumBytes = FrameSize - CSSize;
-    }
+    uint64_t FrameSize = StackSize;
+    NumBytes = FrameSize - CSSize;
 
     // pop FPW.
     BuildMI(MBB, MBBI, DL, TII.get(AVR::POP), AVR::R29);
