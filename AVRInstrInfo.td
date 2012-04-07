@@ -268,7 +268,7 @@ def MOV16rr : I16rr<0x0,
 }
 
 // FIXME: Provide proper encoding!
-let isReMaterializable = 1, isAsCheapAsAMove = 1 in {
+let isAsCheapAsAMove = 1 in {
 def MOV8ri  : I8ri<0x0,
                    (outs IGR8:$dst), (ins i8imm:$src),
                    "ldi\t{$dst, $src}",

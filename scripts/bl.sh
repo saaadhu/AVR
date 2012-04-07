@@ -1,11 +1,12 @@
 clear
+source=$1
 export PATH=~/Code/binutils-2.22/install/bin/:$PATH
 echo "Source"
 echo "------"
-cat test.ll
+cat $source
 echo "------"
 rm test.elf test.s
-~/Code/llvm/Debug+Asserts/bin/llc -march=avr -mtriple=avr test.ll  -print-after-all -view-dag-combine1-dags -disable-fp-elim
+~/Code/llvm/Debug+Asserts/bin/llc -march=avr -mtriple=avr $source  -print-after-all -view-dag-combine1-dags -disable-fp-elim -o test.s
 avr-as test.s -o test.o -mmcu=atxmega128a1
 avr-ld test.o -o test.elf -mavrxmega7 -e main
 echo "Disassembly"
