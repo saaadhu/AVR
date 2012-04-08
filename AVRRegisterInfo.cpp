@@ -161,7 +161,7 @@ AVRRegisterInfo::eliminateFrameIndex(MachineBasicBlock::iterator II,
   int FrameIndex = MI.getOperand(i).getIndex();
 
   unsigned BasePtr = (TFI->hasFP(MF) ? AVR::Y : AVR::SPL);
-  int Offset = MF.getFrameInfo()->getObjectOffset(FrameIndex) + 1;
+  int Offset = MF.getFrameInfo()->getObjectOffset(FrameIndex);
 
   // Fold imm into offset
   Offset += MI.getOperand(i+1).getImm();
@@ -169,13 +169,20 @@ AVRRegisterInfo::eliminateFrameIndex(MachineBasicBlock::iterator II,
   if (!TFI->hasFP(MF))
     Offset += MF.getFrameInfo()->getStackSize();
   else {
-    // The offset from getObjectOffset is negative (stack grows down), calculated relative
-    // to the SP at the entry of the function. Since this function uses FP,
-    // add 2 bytes to skip past the saved Y, and also negate the offsets to convert them
-    // relative to Y.
+    // The offset from getObjectOffset is negative (stack grows down), 
+    // calculated relative to the SP at the entry of the function 
+    // (and includes FP). Since this function uses FP,
+    // add 2 bytes to skip past the saved Y, and add stack size to make it
+    // relative to Y. Add 1, as Y is pointing at unallocated space
+    // Stack frame layout is
+    // Y -->
+    //            Local variables
+    //            ...
+    // SP@Start->Saved Y
+    //            Return Address
 
-    Offset += 2; // Skip the saved FPW
-    Offset = -Offset;
+    Offset += 2; 
+    Offset += MF.getFrameInfo()->getStackSize() + 1;
   }
 
 

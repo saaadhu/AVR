@@ -70,19 +70,6 @@ void AVRFrameLowering::emitPrologue(MachineFunction &MF) const {
     BuildMI(MBB, MBBI, DL, TII.get(AVR::PUSH))
       .addReg(AVR::R29, RegState::Kill);
 
-    // Update FPW with the new base value...
-    BuildMI(MBB, MBBI, DL, TII.get(AVR::IN), AVR::R28)
-      .addReg(AVR::SPL);
-    BuildMI(MBB, MBBI, DL, TII.get(AVR::IN), AVR::R29)
-      .addReg(AVR::SPH);
-
-    // Mark the FramePtr as live-in in every block except the entry.
-    for (MachineFunction::iterator I = llvm::next(MF.begin()), E = MF.end();
-         I != E; ++I) {
-      I->addLiveIn(AVR::R28);
-      I->addLiveIn(AVR::R29);
-    }
-
   } else
    NumBytes = StackSize - AVRFI->getCalleeSavedFrameSize();
 
@@ -112,6 +99,25 @@ void AVRFrameLowering::emitPrologue(MachineFunction &MF) const {
         .addReg(AVR::R31);
       // The SRW implicit def is dead.
       //MI->getOperand(3).setIsDead();
+
+      }
+
+  // Set the FP register to the updated SP. Setting it at the top
+  // of the stack frame allows std y+d instructions (stack grows down).
+  if (hasFP(MF)) {
+
+    // Update FPW with the new base value...
+    BuildMI(MBB, MBBI, DL, TII.get(AVR::IN), AVR::R28)
+      .addReg(AVR::SPL);
+    BuildMI(MBB, MBBI, DL, TII.get(AVR::IN), AVR::R29)
+      .addReg(AVR::SPH);
+
+    // Mark the FramePtr as live-in in every block except the entry.
+    for (MachineFunction::iterator I = llvm::next(MF.begin()), E = MF.end();
+        I != E; ++I) {
+      I->addLiveIn(AVR::R28);
+      I->addLiveIn(AVR::R29);
+    }
   }
 }
 
