@@ -63,10 +63,9 @@ AVRRegisterInfo::getCalleeSavedRegs(const MachineFunction *MF) const {
   */
 
   // TODO : Change this when adding INTR calling conv
-  if (TFI->hasFP(*MF))
-    return (CalleeSavedRegsFP);
-  else
-    return (CalleeSavedRegs);
+  // Conservatively return regs with FP, as functions without FP also use R29:R28
+  // instead of the stack to do indexed loads and stores for stack slots.
+  return (CalleeSavedRegsFP);
 }
 
 BitVector AVRRegisterInfo::getReservedRegs(const MachineFunction &MF) const {
@@ -160,84 +159,33 @@ AVRRegisterInfo::eliminateFrameIndex(MachineBasicBlock::iterator II,
 
   int FrameIndex = MI.getOperand(i).getIndex();
 
-  unsigned BasePtr = (TFI->hasFP(MF) ? AVR::Y : AVR::SPL);
+  unsigned BasePtr = AVR::Y;
   int Offset = MF.getFrameInfo()->getObjectOffset(FrameIndex);
 
   // Fold imm into offset
   Offset += MI.getOperand(i+1).getImm();
 
-  if (!TFI->hasFP(MF))
-    Offset += MF.getFrameInfo()->getStackSize();
-  else {
-    // The offset from getObjectOffset is negative (stack grows down), 
-    // calculated relative to the SP at the entry of the function 
-    // (and includes FP). Since this function uses FP,
-    // add 2 bytes to skip past the saved Y, and add stack size to make it
-    // relative to Y. Add 1, as Y is pointing at unallocated space
-    // Stack frame layout is
-    // Y -->
-    //            Local variables
-    //            ...
-    // SP@Start->Saved Y
-    //            Return Address
+  // The offset from getObjectOffset is negative (stack grows down), 
+  // calculated relative to the SP at the entry of the function 
+  // (and includes FP).
+  // Add 2 bytes to skip past the saved Y, if any (even if not using FP, a constant 2 is given
+  // in TargetFrameLowering's constructor as the LocalAreaOffset). Add stack size to make it
+  // relative to top of the allocated space. Add 1, as the top address is unallocated and allocated space
+  // starts 1 below.
+  // Stack frame layout is
+  // Y -->
+  //            Local variables
+  //            ...
+  // SP@Start->Saved Y
+  //            Return Address
 
     Offset += 2; 
     Offset += MF.getFrameInfo()->getStackSize() + 1;
-  }
 
-
-  /*
-  if (MI.getOpcode() == AVR::ADD16ri) {
-    // This is actually "load effective address" of the stack slot
-    // instruction. We have only two-address instructions, thus we need to
-    // expand it into mov + add
-
-    MI.setDesc(TII.get(AVR::MOV16rr));
-    MI.getOperand(i).ChangeToRegister(BasePtr, false);
-
-    if (Offset == 0)
-      return;
-
-    // We need to materialize the offset via add instruction.
-    unsigned DstReg = MI.getOperand(0).getReg();
-    if (Offset < 0)
-      BuildMI(MBB, llvm::next(II), dl, TII.get(AVR::SUB16ri), DstReg)
-        .addReg(DstReg).addImm(-Offset);
-    else
-      BuildMI(MBB, llvm::next(II), dl, TII.get(AVR::ADD16ri), DstReg)
-        .addReg(DstReg).addImm(Offset);
-
-    return;
-  }
-  if (MI.getOpcode() == AVR::MOV8mr) {
-      if (TFI->hasFP(MF)) {
-        MI.setDesc(TII.get(AVR::MOV8mr_POST));
-      }
-      else {
-        BuildMI(MBB, llvm::next(II), dl, TII.get(AVR  
-
-      }
-
-  }
-  */
-
-  //MI.setDesc(TII.get(TFI->hasFP(MF) ? AVR::MOV8rm_INDEX : AVR::MOV8rm));
-  if (MI.getOpcode() == AVR::MOV8mr) {
-    if (TFI->hasFP(MF)) {
+  if (MI.getOpcode() == AVR::MOV8mr) 
       MI.setDesc(TII.get(AVR::MOV8mr_INDEX));
-    }
-    else {
-      assert(false && "Frame index read/write with FP elimination is not yet implemented");
-    }
-  }
-  else if (MI.getOpcode() == AVR::MOV8rm) {
-    if (TFI->hasFP(MF)) {
+  else if (MI.getOpcode() == AVR::MOV8rm) 
       MI.setDesc(TII.get(AVR::MOV8rm_INDEX));
-    }
-    else {
-      assert(false && "Frame index read/write with FP elimination is not yet implemented");
-    }
-  }
 
   MI.getOperand(i).ChangeToRegister(BasePtr, false);
   MI.getOperand(i+1).ChangeToImmediate(Offset);

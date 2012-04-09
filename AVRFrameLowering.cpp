@@ -26,8 +26,16 @@
 
 using namespace llvm;
 
+// For the AVR, accessing stack slots without a stack frame is expensive, as SP is not a register
+// that can be used for indirect load. Using SP as the base register will therefore involve
+// a couple of INs into an indexed register followed by an indexed load or store. Doing this for
+// every stack slot access is going to blow up the function size very quickly.
+// So, if stack slots are needed, setup the stack frame with Y always.
+
 bool AVRFrameLowering::hasFP(const MachineFunction &MF) const {
   const MachineFrameInfo *MFI = MF.getFrameInfo();
+  const AVRMachineFunctionInfo *AVRFI = MF.getInfo<AVRMachineFunctionInfo>();
+  const uint64_t NumStackBytes = MFI->getStackSize() - AVRFI->getCalleeSavedFrameSize();
 
   return (MF.getTarget().Options.DisableFramePointerElim(MF) ||
           MF.getFrameInfo()->hasVarSizedObjects() ||
@@ -52,16 +60,11 @@ void AVRFrameLowering::emitPrologue(MachineFunction &MF) const {
   // Get the number of bytes to allocate from the FrameInfo.
   uint64_t StackSize = MFI->getStackSize();
 
-  uint64_t NumBytes = 0;
-  if (hasFP(MF)) {
-    // Calculate required stack adjustment
-    uint64_t FrameSize = StackSize;
-    NumBytes = FrameSize - AVRFI->getCalleeSavedFrameSize();
+  // Calculate required stack adjustment
+  uint64_t FrameSize = StackSize;
+  uint64_t NumBytes = FrameSize - AVRFI->getCalleeSavedFrameSize();
 
-    // Get the offset of the stack slot for the EBP register... which is
-    // guaranteed to be the last slot by processFunctionBeforeFrameFinalized.
-    // Update the frame offset adjustment.
-    MFI->setOffsetAdjustment((int64_t)-NumBytes);
+  if (hasFP(MF)) {
 
     // Save FPW into the appropriate stack slot...
     BuildMI(MBB, MBBI, DL, TII.get(AVR::PUSH))
@@ -69,9 +72,7 @@ void AVRFrameLowering::emitPrologue(MachineFunction &MF) const {
 
     BuildMI(MBB, MBBI, DL, TII.get(AVR::PUSH))
       .addReg(AVR::R29, RegState::Kill);
-
-  } else
-   NumBytes = StackSize - AVRFI->getCalleeSavedFrameSize();
+   }
 
 
   // Skip the callee-saved push instructions.
@@ -104,7 +105,7 @@ void AVRFrameLowering::emitPrologue(MachineFunction &MF) const {
 
   // Set the FP register to the updated SP. Setting it at the top
   // of the stack frame allows std y+d instructions (stack grows down).
-  if (hasFP(MF)) {
+  if (hasFP(MF) || NumBytes) {
 
     // Mark the FramePtr as live-in in every block except the entry.
     for (MachineFunction::iterator I = llvm::next(MF.begin()), E = MF.end();
@@ -136,18 +137,16 @@ void AVRFrameLowering::emitEpilogue(MachineFunction &MF,
   // Get the number of bytes to allocate from the FrameInfo
   uint64_t StackSize = MFI->getStackSize();
   unsigned CSSize = AVRFI->getCalleeSavedFrameSize();
-  uint64_t NumBytes = 0;
+  uint64_t FrameSize = StackSize;
+  uint64_t NumBytes = FrameSize - CSSize;
 
   if (hasFP(MF)) {
     // Calculate required stack adjustment
-    uint64_t FrameSize = StackSize;
-    NumBytes = FrameSize - CSSize;
 
     // pop FPW.
     BuildMI(MBB, MBBI, DL, TII.get(AVR::POP), AVR::R29);
     BuildMI(MBB, MBBI, DL, TII.get(AVR::POP), AVR::R28);
-  } else
-    NumBytes = StackSize - CSSize;
+  }
 
   // Skip the callee-saved pop instructions.
   while (MBBI != MBB.begin()) {
@@ -160,25 +159,8 @@ void AVRFrameLowering::emitEpilogue(MachineFunction &MF,
 
   DL = MBBI->getDebugLoc();
 
-  // If there is an ADD16ri or SUB16ri of SPW immediately before this
-  // instruction, merge the two instructions.
-  //if (NumBytes || MFI->hasVarSizedObjects())
-  //  mergeSPUpdatesUp(MBB, MBBI, StackPtr, &NumBytes);
-
   if (MFI->hasVarSizedObjects()) {
     assert(false && "Variable sized objects not handled yet.");
-    /*
-    BuildMI(MBB, MBBI, DL,
-            TII.get(AVR::MOV16rr), AVR::SPW).addReg(AVR::FPW);
-    if (CSSize) {
-      MachineInstr *MI =
-        BuildMI(MBB, MBBI, DL,
-                TII.get(AVR::SUB16ri), AVR::SPW)
-        .addReg(AVR::SPW).addImm(CSSize);
-      // The SRW implicit def is dead.
-      MI->getOperand(3).setIsDead();
-    }
-    */
   } else {
     // adjust stack pointer back: SPW += numbytes by repeatedly doing POP r0
     if (NumBytes) {
@@ -188,15 +170,7 @@ void AVRFrameLowering::emitEpilogue(MachineFunction &MF,
         BuildMI(MBB, MBBI, DL, TII.get(AVR::POP))
         .addReg(AVR::R0);
       }
-      /*
-      MachineInstr *MI =
-        BuildMI(MBB, MBBI, DL, TII.get(AVR::ADD16ri), AVR::SPW)
-        .addReg(AVR::SPW).addImm(NumBytes);
-      // The SRW implicit def is dead.
-      MI->getOperand(3).setIsDead();
-     */
     }
-
   }
 }
 
