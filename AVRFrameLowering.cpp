@@ -87,16 +87,16 @@ void AVRFrameLowering::emitPrologue(MachineFunction &MF) const {
 
   if (NumBytes) { // adjust stack pointer: SPW -= numbytes
       MachineInstr *MI =
-        BuildMI(MBB, MBBI, DL, TII.get(AVR::IN), AVR::R30)
+        BuildMI(MBB, MBBI, DL, TII.get(AVR::IN), AVR::R29)
         .addReg(AVR::SPL);
-        BuildMI(MBB, MBBI, DL, TII.get(AVR::IN), AVR::R31)
+        BuildMI(MBB, MBBI, DL, TII.get(AVR::IN), AVR::R28)
         .addReg(AVR::SPH);
-        BuildMI(MBB, MBBI, DL, TII.get(AVR::SUB8wri), AVR::R30)
+        BuildMI(MBB, MBBI, DL, TII.get(AVR::SUB8wri), AVR::R28)
         .addReg(AVR::R30).addImm(NumBytes);
         BuildMI(MBB, MBBI, DL, TII.get(AVR::OUT), AVR::SPL)
-        .addReg(AVR::R30);
+        .addReg(AVR::R28);
         BuildMI(MBB, MBBI, DL, TII.get(AVR::OUT), AVR::SPH)
-        .addReg(AVR::R31);
+        .addReg(AVR::R29);
       // The SRW implicit def is dead.
       //MI->getOperand(3).setIsDead();
 
@@ -105,12 +105,6 @@ void AVRFrameLowering::emitPrologue(MachineFunction &MF) const {
   // Set the FP register to the updated SP. Setting it at the top
   // of the stack frame allows std y+d instructions (stack grows down).
   if (hasFP(MF)) {
-
-    // Update FPW with the new base value...
-    BuildMI(MBB, MBBI, DL, TII.get(AVR::IN), AVR::R28)
-      .addReg(AVR::SPL);
-    BuildMI(MBB, MBBI, DL, TII.get(AVR::IN), AVR::R29)
-      .addReg(AVR::SPH);
 
     // Mark the FramePtr as live-in in every block except the entry.
     for (MachineFunction::iterator I = llvm::next(MF.begin()), E = MF.end();
