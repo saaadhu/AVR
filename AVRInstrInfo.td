@@ -307,16 +307,12 @@ def ADD8rr  : I8rr<0x0,
                    ]>;
 
 
-let isCommutable = 1 in { // X = ADDC Y, Z  == X = ADDC Z, Y
 def ADC8rr  : I8rr<0x0,
                    (outs GR8:$dst), (ins GR8:$src, GR8:$src2),
                    "adc\t{$dst, $src2}",
                    [(set GR8:$dst, (adde GR8:$src, GR8:$src2)),
                     (implicit SREG)]>;
 
-
-}
-}
 }
 
 
@@ -335,6 +331,31 @@ def SUB8wri  : I8ri<0x0,
                    (outs IGR8:$dst), (ins IGR8:$src, i8imm:$src2),
                    "sbiw \t{$dst, $src2}",
                    []>;
+}
+
+def AND8rr   : I8rr<0x0,
+                    (outs GR8:$dst), (ins GR8:$src, GR8:$src2),
+                    "and \t{$dst, $src2}",
+                    [(set GR8:$dst, (and GR8:$src, GR8:$src2)) ]>;
+
+def AND8ri   : I8ri<0x0,
+                    (outs IGR8:$dst), (ins IGR8:$src, i8imm:$src2),
+                    "andi \t{$dst, $src2}",
+                    [(set IGR8:$dst, (and IGR8:$src, imm:$src2)) ]>;
+
+def OR8rr   : I8ri<0x0,
+                    (outs GR8:$dst), (ins GR8:$src, GR8:$src2),
+                    "or \t{$dst, $src2}",
+                    [(set GR8:$dst, (or GR8:$src, GR8:$src2)) ]>;
+
+def OR8ri   : I8ri<0x0,
+                    (outs IGR8:$dst), (ins IGR8:$src, i8imm:$src2),
+                    "ori \t{$dst, $src2}",
+                    [(set IGR8:$dst, (or IGR8:$src, imm:$src2)) ]>;
+def XOR8rr   : I8rr<0x0,
+                    (outs GR8:$dst), (ins GR8:$src, GR8:$src2),
+                    "eor \t{$dst, $src2}",
+                    [(set GR8:$dst, (xor GR8:$src, GR8:$src2)) ]>;
 }
 
 // Integer comparisons
