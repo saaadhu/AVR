@@ -30,11 +30,8 @@ namespace llvm {
       /// Same as RET_FLAG, but used for returning from ISRs.
       RETI_FLAG,
 
-      /// Y = R{R,L}A X, rotate right (left) arithmetically
-      RRA, RLA,
-
-      /// Y = RRC X, rotate right via carry
-      RRC,
+      /// Y = RLC, RRC X, rotate left/right via carry
+      RLC, RRC,
 
       /// CALL - These operations represent an abstract call
       /// instruction, which includes a bunch of information.
@@ -61,7 +58,10 @@ namespace llvm {
       /// is condition code and operand 4 is flag operand.
       SELECT_CC,
 
-      /// SHL, SRA, SRL - Non-constant shifts.
+      /// SHLC, SRAC, SRLC - constant shifts.
+      SHLC, SRAC, SRLC,
+
+      /// SHL, SRA, SRL - non-constant shifts
       SHL, SRA, SRL
     };
   }
@@ -118,12 +118,10 @@ namespace llvm {
     virtual bool isZExtFree(Type *Ty1, Type *Ty2) const;
     virtual bool isZExtFree(EVT VT1, EVT VT2) const;
 
-/*
     MachineBasicBlock* EmitInstrWithCustomInserter(MachineInstr *MI,
                                                    MachineBasicBlock *BB) const;
     MachineBasicBlock* EmitShiftInstr(MachineInstr *MI,
                                       MachineBasicBlock *BB) const;
-*/
 
   private:
     SDValue LowerCCCCallTo(SDValue Chain, SDValue Callee,

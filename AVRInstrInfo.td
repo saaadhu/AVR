@@ -33,7 +33,7 @@ def SDT_AVRBrCC         : SDTypeProfile<0, 2, [SDTCisVT<0, OtherVT>,
 def SDT_AVRSelectCC     : SDTypeProfile<1, 3, [SDTCisSameAs<0, 1>,
                                                   SDTCisSameAs<1, 2>, 
                                                   SDTCisVT<3, i8>]>;
-def SDT_AVRShift        : SDTypeProfile<1, 2, [SDTCisSameAs<0, 1>,
+def SDT_AVRShift        : SDTypeProfile<1, 2, [SDTCisSameAs<0, 1>, SDTCisI8<1>, SDTCisI8<0>,
                                                   SDTCisI8<2>]>;
 
 //===----------------------------------------------------------------------===//
@@ -44,9 +44,11 @@ def AVRretflag  : SDNode<"AVRISD::RET_FLAG", SDTNone,
 def AVRretiflag : SDNode<"AVRISD::RETI_FLAG", SDTNone,
                        [SDNPHasChain, SDNPOptInGlue]>;
 
-def AVRrra     : SDNode<"AVRISD::RRA", SDTIntUnaryOp, []>;
-def AVRrla     : SDNode<"AVRISD::RLA", SDTIntUnaryOp, []>;
+def AVRrlc     : SDNode<"AVRISD::RLC", SDTIntUnaryOp, []>;
 def AVRrrc     : SDNode<"AVRISD::RRC", SDTIntUnaryOp, []>;
+def AVRshlc    : SDNode<"AVRISD::SHLC", SDTIntUnaryOp, []>;
+def AVRsrac    : SDNode<"AVRISD::SRAC", SDTIntUnaryOp, []>;
+def AVRsrlc    : SDNode<"AVRISD::SRLC", SDTIntUnaryOp, []>;
 
 def AVRcall    : SDNode<"AVRISD::CALL", SDT_AVRCall,
                      [SDNPHasChain, SDNPOutGlue, SDNPOptInGlue, SDNPVariadic]>;
@@ -63,8 +65,8 @@ def AVRbrcc    : SDNode<"AVRISD::BR_CC", SDT_AVRBrCC,
 def AVRselectcc: SDNode<"AVRISD::SELECT_CC", SDT_AVRSelectCC,
                             [SDNPInGlue]>;
 def AVRshl     : SDNode<"AVRISD::SHL", SDT_AVRShift, []>;
-def AVRsra     : SDNode<"AVRISD::SRA", SDT_AVRShift, []>;
 def AVRsrl     : SDNode<"AVRISD::SRL", SDT_AVRShift, []>;
+def AVRsra     : SDNode<"AVRISD::SRA", SDT_AVRShift, []>;
 
 //===----------------------------------------------------------------------===//
 // AVR Operand Definitions.
@@ -371,6 +373,51 @@ def CMP8ri  : I8ri<0x0,
                    [(AVRcmp GR8:$src, imm:$src2), (implicit SREG)]>;
 }
 
+let usesCustomInserter = 1 in {
+
+  let Defs = [SREG] in {
+  def Shl8     : Pseudo<(outs GR8:$dst), (ins GR8:$src, GR8:$cnt),
+                        "# Shl8 PSEUDO",
+                        [(set GR8:$dst, (AVRshl GR8:$src, GR8:$cnt))]>;
+
+
+  def Srl8     : Pseudo<(outs GR8:$dst), (ins GR8:$src, GR8:$cnt),
+                        "# Srl8 PSEUDO",
+                        [(set GR8:$dst, (AVRsrl GR8:$src, GR8:$cnt))]>;
+
+  def Sra8     : Pseudo<(outs GR8:$dst), (ins GR8:$src, GR8:$cnt),
+                        "# Sra8 PSEUDO",
+                        [(set GR8:$dst, (AVRsra GR8:$src, GR8:$cnt))]>;
+
+  }
+}
+
+let Constraints = "$src = $dst" in
+{
+  def Shl8r1  : I8rr<0x0,
+      (outs GR8:$dst), (ins GR8:$src),
+      "lsl \t{$dst}",
+      [(set GR8:$dst, (AVRshlc GR8:$src))]>;
+      
+  def Shr8r1  : I8rr<0x0,
+      (outs GR8:$dst), (ins GR8:$src),
+      "lsr \t{$dst}",
+      [(set GR8:$dst, (AVRsrlc GR8:$src))]>;
+
+  def Shr8r1c  : I8rr<0x0,
+      (outs GR8:$dst), (ins GR8:$src),
+      "asr \t{$dst}",
+      [(set GR8:$dst, (AVRsrac GR8:$src))]>;
+
+  def ROL8r1c  : I8rr<0x0,
+      (outs GR8:$dst), (ins GR8:$src),
+      "rol\t$dst",
+      [(set GR8:$dst, (AVRrlc GR8:$src))]>;
+
+  def ROR8r1c  : Pseudo<(outs GR8:$dst), (ins GR8:$src),
+        "ror\t $dst",
+      [(set GR8:$dst, (AVRrrc GR8:$src))]>;
+}
 // calls
 def : Pat<(AVRcall (i16 tglobaladdr:$dst)),
           (CALL tglobaladdr:$dst)>;

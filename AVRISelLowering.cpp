@@ -83,6 +83,12 @@ AVRTargetLowering::AVRTargetLowering(AVRTargetMachine &tm) :
   setOperationAction(ISD::BR_CC,            MVT::i16,   Custom);
   setOperationAction(ISD::BRCOND,           MVT::Other, Expand);
 
+  setOperationAction(ISD::SHL,            MVT::i8,    Custom);
+  setOperationAction(ISD::SRL,            MVT::i8,    Custom);
+  setOperationAction(ISD::SRA,            MVT::i8,    Custom);
+  setOperationAction(ISD::ROTR,           MVT::i8,    Expand);
+  setOperationAction(ISD::ROTL,           MVT::i8,    Expand);
+
   setBooleanContents(ZeroOrOneBooleanContent);
   setBooleanVectorContents(ZeroOrOneBooleanContent); // FIXME: Is this correct?
 
@@ -93,11 +99,9 @@ AVRTargetLowering::AVRTargetLowering(AVRTargetMachine &tm) :
 SDValue AVRTargetLowering::LowerOperation(SDValue Op,
                                              SelectionDAG &DAG) const {
   switch (Op.getOpcode()) {
-  /*
   case ISD::SHL: // FALLTHROUGH
   case ISD::SRL:
   case ISD::SRA:              return LowerShifts(Op, DAG);
-  */
   case ISD::GlobalAddress:    return LowerGlobalAddress(Op, DAG);
   case ISD::BlockAddress:     return LowerBlockAddress(Op, DAG);
   /*
@@ -509,7 +513,6 @@ AVRTargetLowering::LowerCallResult(SDValue Chain, SDValue InFlag,
   return Chain;
 }
 
-/*
 SDValue AVRTargetLowering::LowerShifts(SDValue Op,
                                           SelectionDAG &DAG) const {
   unsigned Opc = Op.getOpcode();
@@ -533,28 +536,26 @@ SDValue AVRTargetLowering::LowerShifts(SDValue Op,
                          VT, N->getOperand(0), N->getOperand(1));
     }
 
-  uint64_t ShiftAmount = cast<ConstantSDNode>(N->getOperand(1))->getZExtValue();
+  uint64_t ShiftAmount = N->getConstantOperandVal(1);
 
   // Expand the stuff into sequence of shifts.
   // FIXME: for some shift amounts this might be done better!
   // E.g.: foo >> (8 + N) => sxt(swpb(foo)) >> N
   SDValue Victim = N->getOperand(0);
 
-  if (Opc == ISD::SRL && ShiftAmount) {
-    // Emit a special goodness here:
-    // srl A, 1 => clrc; rrc A
-    Victim = DAG.getNode(AVRISD::RRC, dl, VT, Victim);
-    ShiftAmount -= 1;
+  unsigned int TargetOpcode = 0;
+  switch(Opc) {
+    case ISD::SHL: TargetOpcode = AVRISD::SHLC; break;
+    case ISD::SRA: TargetOpcode = AVRISD::SRAC; break;
+    case ISD::SRL: TargetOpcode = AVRISD::SRLC; break;
   }
 
   while (ShiftAmount--)
-    Victim = DAG.getNode((Opc == ISD::SHL ? AVRISD::RLA : AVRISD::RRA),
-                         dl, VT, Victim);
+    Victim = DAG.getNode(TargetOpcode, dl, VT, Victim);
 
   return Victim;
 }
 
-*/
 SDValue AVRTargetLowering::LowerGlobalAddress(SDValue Op,
                                                  SelectionDAG &DAG) const {
   const GlobalValue *GV = cast<GlobalAddressSDNode>(Op)->getGlobal();
@@ -902,8 +903,7 @@ const char *AVRTargetLowering::getTargetNodeName(unsigned Opcode) const {
   default: return NULL;
   case AVRISD::RET_FLAG:           return "AVRISD::RET_FLAG";
   case AVRISD::RETI_FLAG:          return "AVRISD::RETI_FLAG";
-  case AVRISD::RRA:                return "AVRISD::RRA";
-  case AVRISD::RLA:                return "AVRISD::RLA";
+  case AVRISD::RLC:                return "AVRISD::RLC";
   case AVRISD::RRC:                return "AVRISD::RRC";
   case AVRISD::CALL:               return "AVRISD::CALL";
   case AVRISD::Wrapper:            return "AVRISD::Wrapper";
@@ -911,7 +911,7 @@ const char *AVRTargetLowering::getTargetNodeName(unsigned Opcode) const {
   case AVRISD::CMP:                return "AVRISD::CMP";
   case AVRISD::SELECT_CC:          return "AVRISD::SELECT_CC";
   case AVRISD::SHL:                return "AVRISD::SHL";
-  case AVRISD::SRA:                return "AVRISD::SRA";
+  case AVRISD::SRL:                return "AVRISD::SRL";
   }
 }
 
@@ -940,11 +940,7 @@ bool AVRTargetLowering::isZExtFree(EVT VT1, EVT VT2) const {
   return 0 && VT1 == MVT::i8 && VT2 == MVT::i16;
 }
 
-//===----------------------------------------------------------------------===//
-//  Other Lowering Code
-//===----------------------------------------------------------------------===//
 
-/*
 MachineBasicBlock*
 AVRTargetLowering::EmitShiftInstr(MachineInstr *MI,
                                      MachineBasicBlock *BB) const {
@@ -959,28 +955,16 @@ AVRTargetLowering::EmitShiftInstr(MachineInstr *MI,
   default:
     assert(0 && "Invalid shift opcode!");
   case AVR::Shl8:
-   Opc = AVR::SHL8r1;
+   Opc = AVRISD::SHLC;
    RC = AVR::GR8RegisterClass;
-   break;
-  case AVR::Shl16:
-   Opc = AVR::SHL16r1;
-   RC = AVR::GR16RegisterClass;
-   break;
-  case AVR::Sra8:
-   Opc = AVR::SAR8r1;
-   RC = AVR::GR8RegisterClass;
-   break;
-  case AVR::Sra16:
-   Opc = AVR::SAR16r1;
-   RC = AVR::GR16RegisterClass;
    break;
   case AVR::Srl8:
-   Opc = AVR::SAR8r1c;
+   Opc = AVRISD::SRLC;
    RC = AVR::GR8RegisterClass;
    break;
-  case AVR::Srl16:
-   Opc = AVR::SAR16r1c;
-   RC = AVR::GR16RegisterClass;
+  case AVR::Sra8:
+   Opc = AVRISD::SRAC;
+   RC = AVR::GR8RegisterClass;
    break;
   }
 
@@ -1059,69 +1043,8 @@ AVRTargetLowering::EmitInstrWithCustomInserter(MachineInstr *MI,
                                                   MachineBasicBlock *BB) const {
   unsigned Opc = MI->getOpcode();
 
-  if (Opc == AVR::Shl8 || Opc == AVR::Shl16 ||
-      Opc == AVR::Sra8 || Opc == AVR::Sra16 ||
-      Opc == AVR::Srl8 || Opc == AVR::Srl16)
+  if (Opc == AVR::Shl8 || Opc == AVR::Sra8 ||
+      Opc == AVR::Srl8)
     return EmitShiftInstr(MI, BB);
 
-  const TargetInstrInfo &TII = *getTargetMachine().getInstrInfo();
-  DebugLoc dl = MI->getDebugLoc();
-
-  assert((Opc == AVR::Select16 || Opc == AVR::Select8) &&
-         "Unexpected instr type to insert");
-
-  // To "insert" a SELECT instruction, we actually have to insert the diamond
-  // control-flow pattern.  The incoming instruction knows the destination vreg
-  // to set, the condition code register to branch on, the true/false values to
-  // select between, and a branch opcode to use.
-  const BasicBlock *LLVM_BB = BB->getBasicBlock();
-  MachineFunction::iterator I = BB;
-  ++I;
-
-  //  thisMBB:
-  //  ...
-  //   TrueVal = ...
-  //   cmpTY ccX, r1, r2
-  //   jCC copy1MBB
-  //   fallthrough --> copy0MBB
-  MachineBasicBlock *thisMBB = BB;
-  MachineFunction *F = BB->getParent();
-  MachineBasicBlock *copy0MBB = F->CreateMachineBasicBlock(LLVM_BB);
-  MachineBasicBlock *copy1MBB = F->CreateMachineBasicBlock(LLVM_BB);
-  F->insert(I, copy0MBB);
-  F->insert(I, copy1MBB);
-  // Update machine-CFG edges by transferring all successors of the current
-  // block to the new block which will contain the Phi node for the select.
-  copy1MBB->splice(copy1MBB->begin(), BB,
-                   llvm::next(MachineBasicBlock::iterator(MI)),
-                   BB->end());
-  copy1MBB->transferSuccessorsAndUpdatePHIs(BB);
-  // Next, add the true and fallthrough blocks as its successors.
-  BB->addSuccessor(copy0MBB);
-  BB->addSuccessor(copy1MBB);
-
-  BuildMI(BB, dl, TII.get(AVR::JCC))
-    .addMBB(copy1MBB)
-    .addImm(MI->getOperand(3).getImm());
-
-  //  copy0MBB:
-  //   %FalseValue = ...
-  //   # fallthrough to copy1MBB
-  BB = copy0MBB;
-
-  // Update machine-CFG edges
-  BB->addSuccessor(copy1MBB);
-
-  //  copy1MBB:
-  //   %Result = phi [ %FalseValue, copy0MBB ], [ %TrueValue, thisMBB ]
-  //  ...
-  BB = copy1MBB;
-  BuildMI(*BB, BB->begin(), dl, TII.get(AVR::PHI),
-          MI->getOperand(0).getReg())
-    .addReg(MI->getOperand(2).getReg()).addMBB(copy0MBB)
-    .addReg(MI->getOperand(1).getReg()).addMBB(thisMBB);
-
-  MI->eraseFromParent();   // The pseudo instruction is gone now.
-  return BB;
 }
-*/

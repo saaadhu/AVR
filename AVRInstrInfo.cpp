@@ -36,7 +36,6 @@ void AVRInstrInfo::storeRegToStackSlot(MachineBasicBlock &MBB,
                                     unsigned SrcReg, bool isKill, int FrameIdx,
                                           const TargetRegisterClass *RC,
                                           const TargetRegisterInfo *TRI) const {
-  /*
   DebugLoc DL;
   if (MI != MBB.end()) DL = MI->getDebugLoc();
   MachineFunction &MF = *MBB.getParent();
@@ -48,17 +47,12 @@ void AVRInstrInfo::storeRegToStackSlot(MachineBasicBlock &MBB,
                             MFI.getObjectSize(FrameIdx),
                             MFI.getObjectAlignment(FrameIdx));
 
-  if (RC == &AVR::GR16RegClass)
-    BuildMI(MBB, MI, DL, get(AVR::MOV16mr))
-      .addFrameIndex(FrameIdx).addImm(0)
-      .addReg(SrcReg, getKillRegState(isKill)).addMemOperand(MMO);
-  else if (RC == &AVR::GR8RegClass)
+  if (RC == &AVR::GR8RegClass)
     BuildMI(MBB, MI, DL, get(AVR::MOV8mr))
       .addFrameIndex(FrameIdx).addImm(0)
       .addReg(SrcReg, getKillRegState(isKill)).addMemOperand(MMO);
   else
     llvm_unreachable("Cannot store this register to stack slot!");
-  */
 }
 
 void AVRInstrInfo::loadRegFromStackSlot(MachineBasicBlock &MBB,
