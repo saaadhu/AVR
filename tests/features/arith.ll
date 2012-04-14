@@ -1,7 +1,7 @@
 define i8 @main()
 {
 	%x = call i8 @add_fn(i8 2, i8 3);
-	%y = call i8 @sub_fn(i8 3, i8 2);
+	%y = call i8 @sub_fn(i8 4, i8 1);
 	ret i8 %y;
 }
 

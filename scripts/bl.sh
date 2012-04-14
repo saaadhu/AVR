@@ -5,7 +5,7 @@ echo "------"
 cat $1
 echo "------"
 rm test.elf test.s
-~/Code/llvm/Debug+Asserts/bin/llc -march=avr -mtriple=avr $1  -print-after-all -view-dag-combine1-dags -view-isel-dags -o test.s
+~/Code/llvm/Debug+Asserts/bin/llc -march=avr -mtriple=avr $1  -o test.s -disable-fp-elim
 avr-as test.s -o test.o -mmcu=atxmega128a1
 avr-ld test.o -o test.elf -mavrxmega7 -e main
 echo "Disassembly"
